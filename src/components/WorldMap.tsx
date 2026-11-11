@@ -4,7 +4,15 @@ import { easyContinent } from '../lib/easy'
 import { BY_ID, COUNTRIES, WORLD } from '../lib/geo'
 import type { Box, Level } from '../lib/types'
 
-export type Mark = 'right' | 'wrong' | 'reveal'
+/** pick: ausgewählt, aber noch nicht bestätigt. */
+export type Mark = 'right' | 'wrong' | 'reveal' | 'pick'
+
+/** Antippbarer Kreis auf der Karte, z. B. für einen Ozean. */
+export interface MapSpot {
+  id: string
+  x: number
+  y: number
+}
 
 interface Props {
   /** Ausschnitt in Kartenkoordinaten. Ändert er sich, fährt die Karte dorthin. */
@@ -17,6 +25,7 @@ interface Props {
   relief?: boolean
   /** Sehr kleine Länder zusätzlich als Punkt markieren. */
   pins?: boolean
+  spots?: MapSpot[]
   interactive?: boolean
   onPick?: (id: string) => void
   /** Platz in Pixeln, den Bedienelemente über und unter der Karte verdecken. */
@@ -41,6 +50,7 @@ function WorldMapInner({
   marks,
   relief = false,
   pins = false,
+  spots,
   interactive = true,
   onPick,
   inset = { top: 0, bottom: 0 },
@@ -340,6 +350,19 @@ function WorldMapInner({
         {interactive &&
           TINY.filter((c) => pool.has(c.id)).map((c) => <path key={`h-${c.id}`} className="land-hit" d={c.d} data-id={c.id} />)}
         <g ref={pinLayer}>
+          {spots?.map((sp, i) => (
+            <g
+              key={`s-${i}`}
+              className={`spot${marks?.[sp.id] ? ` is-${marks[sp.id]}` : ''}`}
+              data-id={sp.id}
+              data-x={sp.x}
+              data-y={sp.y}
+              data-span={0}
+            >
+              <circle r={21} />
+              <path d="M-11-3q3.7-4 7.3 0t7.4 0 7.3 0M-11 5q3.7-4 7.3 0t7.4 0 7.3 0" />
+            </g>
+          ))}
           {pins &&
             TINY.filter((c) => pool.has(c.id)).map((c) => (
               <circle

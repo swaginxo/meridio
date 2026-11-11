@@ -36,6 +36,8 @@ export function Quiz({ mode, region, onExit }: { mode: Mode; region: Region; onE
   const [phase, setPhase] = useState<Phase>('ask')
   const [marks, setMarks] = useState<Record<string, Mark>>({})
   const [lastWrong, setLastWrong] = useState<string | null>(null)
+  /** Angetipptes, aber noch nicht bestätigtes Land. */
+  const [selected, setSelected] = useState<string | null>(null)
   const [gained, setGained] = useState(0)
   const [results, setResults] = useState<Result[]>([])
   const [streakBefore] = useState(profile.streak.count)
@@ -54,6 +56,7 @@ export function Quiz({ mode, region, onExit }: { mode: Mode; region: Region; onE
   const next = useCallback(() => {
     setMarks({})
     setLastWrong(null)
+    setSelected(null)
     setTries(0)
     if (idx + 1 >= queue.length) {
       const firstTry = resultsRef.current.filter((r) => r.tries === 1).length
@@ -67,7 +70,7 @@ export function Quiz({ mode, region, onExit }: { mode: Mode; region: Region; onE
     }
   }, [idx, queue.length, total])
 
-  const pick = useCallback(
+  const answer = useCallback(
     (id: string) => {
       if (phase !== 'ask' || !target) return
       const isRepeat = idx >= total
@@ -81,6 +84,7 @@ export function Quiz({ mode, region, onExit }: { mode: Mode; region: Region; onE
         }
         setMarks({ [targetId]: 'right' })
         setLastWrong(null)
+    setSelected(null)
         setPhase('right')
         return
       }
@@ -116,13 +120,33 @@ export function Quiz({ mode, region, onExit }: { mode: Mode; region: Region; onE
     setTries(0)
     setMarks({})
     setLastWrong(null)
+    setSelected(null)
     setGained(0)
     resultsRef.current = []
     setResults([])
     setPhase('ask')
   }
 
-  const inset = useMemo(() => ({ top: 162, bottom: 150 }), [])
+  // Mit Bestätigung wählt ein Tipp nur aus. Erst der Knopf wertet die Antwort.
+  const pick = useCallback(
+    (id: string) => {
+      if (phase !== 'ask') return
+      if (settings.confirm) setSelected(id)
+      else answer(id)
+    },
+    [phase, settings.confirm, answer],
+  )
+  const confirm = () => {
+    if (!selected) return
+    setSelected(null)
+    answer(selected)
+  }
+  const shown = useMemo<Record<string, Mark>>(
+    () => (selected && phase === 'ask' ? { ...marks, [selected]: 'pick' } : marks),
+    [marks, selected, phase],
+  )
+
+  const inset = useMemo(() => ({ top: 162, bottom: 170 }), [])
   const regionLabel = REGIONS.find((r) => r.id === region)!.label
   const modeLabel = MODES.find((m) => m.id === mode)!.label
 
@@ -224,7 +248,7 @@ export function Quiz({ mode, region, onExit }: { mode: Mode; region: Region; onE
         settings={settings}
         levels={settings.showLevels ? levels : NO_LEVELS}
         pool={poolIds}
-        marks={marks}
+        marks={shown}
         onPick={pick}
         inset={inset}
         label={`Karte: ${regionLabel}`}
@@ -292,6 +316,11 @@ export function Quiz({ mode, region, onExit }: { mode: Mode; region: Region; onE
       </div>
 
       <div className="quiz-bottom" aria-live="polite">
+        {phase === 'ask' && selected && (
+          <button className="btn btn--primary confirm-btn" onClick={confirm}>
+            <Check aria-hidden /> Auswahl bestätigen
+          </button>
+        )}
         {phase === 'ask' && wrong && (
           <div className="feedback feedback--wrong" key={`w-${tries}`}>
             <p className="feedback-head">

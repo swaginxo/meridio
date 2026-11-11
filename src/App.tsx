@@ -1,5 +1,6 @@
 import { Flame, Globe2, UserRound } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { levelById } from './lib/easy'
 import { actions, useProfile } from './lib/store'
 import { themeOf } from './lib/themes'
 import type { Mode, Region } from './lib/types'
@@ -23,12 +24,13 @@ export default function App() {
   const [tab, setTab] = useState<Tab>('lernen')
   const [mode, setMode] = useState<Mode>('laender')
   const [quiz, setQuiz] = useState<Region | null>(null)
+  const [easy, setEasy] = useState<string | null>(null)
   const theme = profile.settings.theme
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme
-    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', quiz ? themeOf(theme).ocean : themeOf(theme).bg)
-  }, [theme, quiz])
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', quiz || easy ? themeOf(theme).ocean : themeOf(theme).bg)
+  }, [theme, quiz, easy])
 
   // Verpasste Tage verrechnen: beim Start und wenn die App wieder in den Vordergrund kommt.
   useEffect(() => {
@@ -38,14 +40,18 @@ export default function App() {
     return () => document.removeEventListener('visibilitychange', onShow)
   }, [profile.id])
 
+  if (easy && profile.settings.michelle) {
+    return (
+      <div className="shell shell--quiz">
+        <EasyQuiz key={`${profile.id}-${easy}`} level={levelById(easy)} onExit={() => setEasy(null)} />
+      </div>
+    )
+  }
+
   if (quiz) {
     return (
       <div className="shell shell--quiz">
-        {profile.settings.michelle ? (
-          <EasyQuiz key={profile.id} onExit={() => setQuiz(null)} />
-        ) : (
-          <Quiz key={`${profile.id}-${mode}-${quiz}`} mode={mode} region={quiz} onExit={() => setQuiz(null)} />
-        )}
+        <Quiz key={`${profile.id}-${mode}-${quiz}`} mode={mode} region={quiz} onExit={() => setQuiz(null)} />
       </div>
     )
   }
@@ -54,7 +60,7 @@ export default function App() {
     <div className="shell">
       <main>
         {tab === 'lernen' && (
-          <Home mode={mode} onMode={setMode} onStart={setQuiz} onStreak={() => setTab('streak')} />
+          <Home mode={mode} onMode={setMode} onStart={setQuiz} onEasy={setEasy} onStreak={() => setTab('streak')} />
         )}
         {tab === 'streak' && <StreakScreen />}
         {tab === 'profil' && <ProfileScreen />}

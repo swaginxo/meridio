@@ -49,6 +49,8 @@ export interface Settings {
   showLevels: boolean
   /** Vereinfachter Modus für Kinder: nur Kontinente, mit Tipp zu jeder Frage. */
   michelle: boolean
+  /** Antippen wählt nur aus, erst die Bestätigung wertet die Antwort. */
+  confirm: boolean
   len: 10 | 20
 }
 
@@ -73,6 +75,8 @@ export interface Profile {
   streak: Streak
   progress: Record<Mode, Record<string, Item>>
   settings: Settings
+  /** Michelle-Modus: beste Sternzahl je Lernebene. */
+  easy: Record<string, number>
 }
 
 export interface State {

@@ -17,6 +17,7 @@ export function newProfile(name: string, settings?: Partial<Settings>): Profile 
     correct: 0,
     streak: { count: 0, best: 0, last: null, freezes: 0, active: [], frozen: [] },
     progress: { laender: {}, hauptstaedte: {}, flaggen: {} },
+    easy: {},
     settings: {
       theme: 'wald',
       klein: true,
@@ -26,6 +27,7 @@ export function newProfile(name: string, settings?: Partial<Settings>): Profile 
       globe: false,
       showLevels: true,
       michelle: false,
+      confirm: true,
       len: 10,
       ...settings,
     },
@@ -47,6 +49,7 @@ export function normalizeProfile(raw: unknown): Profile | null {
     streak: { ...base.streak, ...p.streak },
     progress: { ...base.progress, ...p.progress },
     settings: { ...base.settings, ...p.settings },
+    easy: { ...p.easy },
   }
 }
 
@@ -112,6 +115,9 @@ export const actions = {
         [mode]: { ...p.progress[mode], [id]: review(p.progress[mode][id], tries, now) },
       },
     }))
+  },
+  easyStars(level: string, stars: number) {
+    patch((p) => ({ ...p, easy: { ...p.easy, [level]: Math.max(p.easy[level] ?? 0, stars) } }))
   },
   addPoints(points: number) {
     patch((p) => ({ ...p, points: p.points + points }))

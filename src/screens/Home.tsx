@@ -1,6 +1,7 @@
-import { ArrowUpRight, Flame, Sparkles } from 'lucide-react'
+import { ArrowUpRight, Flame, Sparkles, Star } from 'lucide-react'
 import { useMemo } from 'react'
 import { MapView } from '../components/MapView'
+import { EASY_LEVELS } from '../lib/easy'
 import { COUNTRIES, levelsFor, poolFor, tally } from '../lib/geo'
 import { useProfile } from '../lib/store'
 import { MODES, REGIONS, type Mode, type Region } from '../lib/types'
@@ -29,11 +30,13 @@ export function Home({
   mode,
   onMode,
   onStart,
+  onEasy,
   onStreak,
 }: {
   mode: Mode
   onMode: (m: Mode) => void
   onStart: (r: Region) => void
+  onEasy: (level: string) => void
   onStreak: () => void
 }) {
   const profile = useProfile()
@@ -46,7 +49,7 @@ export function Home({
 
   if (settings.michelle) {
     return (
-      <div className="home easy">
+      <div className="home">
         <header className="top">
           <div className="brand">
             <svg viewBox="0 0 32 32" aria-hidden>
@@ -59,8 +62,8 @@ export function Home({
             <Flame aria-hidden /> {streak.count}
           </button>
         </header>
-        <section className="hero">
-          <button className="hero-map" onClick={() => onStart('welt')} aria-label="Kontinente lernen starten">
+        <section className="hero easy--continent">
+          <div className="hero-map">
             <MapView
               region="welt"
               settings={{ ...settings, globe: false }}
@@ -69,13 +72,27 @@ export function Home({
               interactive={false}
               label="Weltkarte mit farbigen Kontinenten"
             />
-          </button>
+          </div>
         </section>
-        <button className="region region--world easy-start" onClick={() => onStart('welt')}>
-          <span className="region-name">Kontinente lernen</span>
-          <span className="region-count">Tippe auf den richtigen Kontinent. Zu jeder Frage gibt es einen Tipp.</span>
-          <ArrowUpRight className="region-go" aria-hidden />
-        </button>
+        <section className="regions easy-levels" aria-label="Lernebene wählen">
+          {EASY_LEVELS.map((level, i) => {
+            const best = profile.easy[level.id]
+            return (
+              <button
+                key={level.id}
+                className={`region${i === 0 ? ' region--world' : ''}`}
+                onClick={() => onEasy(level.id)}
+              >
+                <span className="region-name">{level.title}</span>
+                <span className="region-count">{level.text}</span>
+                <ArrowUpRight className="region-go" aria-hidden />
+                <span className="easy-best">
+                  <Star aria-hidden /> {best == null ? 'Noch nicht gespielt' : `${best} von ${level.size}`}
+                </span>
+              </button>
+            )
+          })}
+        </section>
         <p className="hint">Der Michelle-Modus ist an. Im Profil kannst du ihn wieder ausschalten.</p>
       </div>
     )

@@ -153,6 +153,13 @@ export function ProfileScreen() {
         ))}
         <div className="row">
           <div>
+            <p className="row-label">Auswahl bestätigen</p>
+            <p className="row-text">Antippen wählt ein Land nur aus. Erst „Auswahl bestätigen“ wertet die Antwort</p>
+          </div>
+          <Switch on={settings.confirm} onChange={(v) => set({ confirm: v })} label="Auswahl bestätigen" />
+        </div>
+        <div className="row">
+          <div>
             <p className="row-label">Lernstand im Spiel</p>
             <p className="row-text">Färbt Länder während einer Runde nach Lernstufe. Aus: neutrale Karte ohne Hinweise</p>
           </div>

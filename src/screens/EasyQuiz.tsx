@@ -1,15 +1,15 @@
 import { ArrowRight, Check, ChevronLeft, Lightbulb, RotateCcw, Star, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { WorldMap, type Mark } from '../components/WorldMap'
-import { EASY, easyAccepts, easyContinent, type EasyContinent } from '../lib/easy'
-import { BY_ID, COUNTRIES, VIEWS } from '../lib/geo'
+import { CONTINENT_NAME, easyContinent, levelPool, levelView, type EasyItem, type EasyLevel } from '../lib/easy'
+import { BY_ID, COUNTRIES } from '../lib/geo'
 import { actions, useProfile } from '../lib/store'
 import { themeOf } from '../lib/themes'
+import type { Continent } from '../lib/types'
 
 const MAX_TRIES = 3
 const NO_LEVELS = {}
 const ALL = new Set(COUNTRIES.filter((c) => c.d).map((c) => c.id))
-const INSET = { top: 216, bottom: 150 }
 
 type Phase = 'ask' | 'right' | 'reveal' | 'done'
 
@@ -22,56 +22,93 @@ function shuffle<T>(list: T[]): T[] {
   return out
 }
 
-const draw = () => shuffle(EASY).map((c) => ({ c, tip: c.tips[Math.floor(Math.random() * c.tips.length)] }))
+const draw = (level: EasyLevel) =>
+  shuffle(level.items)
+    .slice(0, level.size)
+    .map((item) => ({ item, tip: item.tips[Math.floor(Math.random() * item.tips.length)] }))
 
-/** Alle Länder eines Kontinents auf einmal markieren. */
-function markContinent(target: EasyContinent, mark: Mark): Record<string, Mark> {
-  const out: Record<string, Mark> = {}
-  for (const c of COUNTRIES) if (easyContinent(c) === target.id) out[c.id] = mark
-  return out
-}
-
-/** Michelle-Modus: Kontinente antippen, mit Tipp zu jeder Frage. */
-export function EasyQuiz({ onExit }: { onExit: () => void }) {
+/** Michelle-Modus: eine einfache Lernebene, mit Tipp zu jeder Frage. */
+export function EasyQuiz({ level, onExit }: { level: EasyLevel; onExit: () => void }) {
   const profile = useProfile()
-  const [queue, setQueue] = useState(draw)
+  const { settings } = profile
+  const [queue, setQueue] = useState(() => draw(level))
   const [idx, setIdx] = useState(0)
   const [tries, setTries] = useState(0)
   const [phase, setPhase] = useState<Phase>('ask')
   const [marks, setMarks] = useState<Record<string, Mark>>({})
   const [wrong, setWrong] = useState<string | null>(null)
+  const [selected, setSelected] = useState<string | null>(null)
   const [stars, setStars] = useState(0)
 
-  const { c: target, tip } = queue[Math.min(idx, queue.length - 1)]
+  const { item, tip } = queue[Math.min(idx, queue.length - 1)]
   const total = queue.length
-  const relief = useMemo(() => themeOf(profile.settings.theme).relief, [profile.settings.theme])
+  const pool = useMemo(() => (level.kind === 'country' ? new Set(levelPool(level)) : ALL), [level])
+  const view = useMemo(() => levelView(level, item), [level, item])
+  const inset = useMemo(() => ({ top: 216, bottom: 170 }), [])
 
-  const pick = (id: string) => {
-    if (phase !== 'ask') return
-    const country = BY_ID[id]
-    if (easyAccepts(target.id, country)) {
+  /** Was ein Tipp auf die Karte bedeutet: Kontinent, Land oder Ozean. */
+  const keyOf = (id: string): string | null => {
+    if (level.kind === 'continent') return BY_ID[id] ? easyContinent(BY_ID[id]) : null
+    if (level.kind === 'country') return BY_ID[id] ? id : null
+    return level.spots?.some((s) => s.id === id) ? id : null
+  }
+  const nameOf = (key: string): string => {
+    if (level.kind === 'continent') return CONTINENT_NAME[key as Continent]
+    if (level.kind === 'country') return BY_ID[key].name
+    const ocean = level.items.find((i) => i.target === key)
+    return ocean ? ocean.answer.replace(/^Das ist /, '').replace(/\.$/, '') : ''
+  }
+  /** Markiert alles, was zu einer Antwort gehört: bei Kontinenten jedes Land darin. */
+  const markAll = (key: string, mark: Mark): Record<string, Mark> => {
+    if (level.kind !== 'continent') return { [key]: mark }
+    const out: Record<string, Mark> = {}
+    for (const c of COUNTRIES) if (easyContinent(c) === key) out[c.id] = mark
+    return out
+  }
+  const isRight = (target: EasyItem, key: string, id: string) =>
+    key === target.target || (level.kind === 'continent' && id === 'RU' && target.target === 'europa')
+
+  const answer = (id: string) => {
+    const key = keyOf(id)
+    if (!key) return
+    if (isRight(item, key, id)) {
       if (tries === 0) setStars((s) => s + 1)
       actions.addPoints(tries === 0 ? 10 : 5)
-      setMarks(markContinent(target, 'right'))
+      setMarks(markAll(item.target, 'right'))
       setWrong(null)
       setPhase('right')
       return
     }
     const used = tries + 1
     setTries(used)
-    setWrong(EASY.find((e) => e.id === easyContinent(country))!.name)
+    setWrong(nameOf(key))
     if (used >= MAX_TRIES) {
-      setMarks(markContinent(target, 'reveal'))
+      setMarks(markAll(item.target, 'reveal'))
       setPhase('reveal')
     }
   }
 
+  const pick = (id: string) => {
+    if (phase !== 'ask' || !keyOf(id)) return
+    if (settings.confirm) setSelected(id)
+    else answer(id)
+  }
+  const confirm = () => {
+    if (!selected) return
+    setSelected(null)
+    answer(selected)
+  }
+  const selectedKey = selected ? keyOf(selected) : null
+  const shown = selectedKey && phase === 'ask' ? { ...marks, ...markAll(selectedKey, 'pick') } : marks
+
   const next = () => {
     setMarks({})
     setWrong(null)
+    setSelected(null)
     setTries(0)
     if (idx + 1 >= total) {
       actions.finishRound(20)
+      actions.easyStars(level.id, stars)
       setPhase('done')
     } else {
       setIdx(idx + 1)
@@ -80,11 +117,12 @@ export function EasyQuiz({ onExit }: { onExit: () => void }) {
   }
 
   const restart = () => {
-    setQueue(draw())
+    setQueue(draw(level))
     setIdx(0)
     setTries(0)
     setMarks({})
     setWrong(null)
+    setSelected(null)
     setStars(0)
     setPhase('ask')
   }
@@ -93,7 +131,7 @@ export function EasyQuiz({ onExit }: { onExit: () => void }) {
     return (
       <div className="summary">
         <header className="summary-head">
-          <p className="summary-meta">Kontinente</p>
+          <p className="summary-meta">{level.title}</p>
           <h1>{stars === total ? 'Alles richtig!' : 'Gut gemacht!'}</h1>
         </header>
         <div className="easy-stars" role="img" aria-label={`${stars} von ${total} Sternen`}>
@@ -102,7 +140,7 @@ export function EasyQuiz({ onExit }: { onExit: () => void }) {
           ))}
         </div>
         <p className="easy-result">
-          Du hast {stars} von {total} Kontinenten gleich beim ersten Mal gefunden.
+          Du hast {stars} von {total} Fragen gleich beim ersten Mal richtig beantwortet.
         </p>
         <div className="summary-actions">
           <button className="btn btn--primary" onClick={restart}>
@@ -117,16 +155,17 @@ export function EasyQuiz({ onExit }: { onExit: () => void }) {
   }
 
   return (
-    <div className="quiz easy">
+    <div className={`quiz easy easy--${level.kind}`}>
       <WorldMap
-        view={VIEWS.welt}
+        view={view}
         levels={NO_LEVELS}
-        pool={ALL}
-        marks={marks}
-        relief={relief}
+        pool={pool}
+        marks={shown}
+        spots={level.spots}
+        relief={themeOf(settings.theme).relief}
         onPick={pick}
-        inset={INSET}
-        label="Weltkarte mit farbigen Kontinenten"
+        inset={inset}
+        label={`Karte: ${level.title}`}
       />
 
       <div className="quiz-top">
@@ -134,7 +173,7 @@ export function EasyQuiz({ onExit }: { onExit: () => void }) {
           <button className="icon-btn" onClick={onExit} aria-label="Zurück zur Übersicht">
             <ChevronLeft aria-hidden />
           </button>
-          <div className="status" aria-label="Kontinente">
+          <div className="status" aria-label={level.title}>
             <div className="status-item">
               <span className="status-num">
                 <small>Frage</small> {Math.min(idx + 1, total)}/{total}
@@ -148,8 +187,8 @@ export function EasyQuiz({ onExit }: { onExit: () => void }) {
 
         <div className="prompt" key={idx}>
           <div>
-            <p className="prompt-ask">Tippe auf</p>
-            <p className="prompt-name">{target.name}</p>
+            <p className="prompt-ask">{item.ask}</p>
+            <p className="prompt-name">{item.name}</p>
           </div>
         </div>
         {phase === 'ask' && (
@@ -157,14 +196,19 @@ export function EasyQuiz({ onExit }: { onExit: () => void }) {
             <Lightbulb aria-hidden />
             <span>
               {tip}
-              {tries > 0 ? ` ${target.where}` : ''}
+              {tries > 0 ? ` ${item.where}` : ''}
             </span>
           </p>
         )}
       </div>
 
       <div className="quiz-bottom" aria-live="polite">
-        {phase === 'ask' && wrong && (
+        {phase === 'ask' && selected && (
+          <button className="btn btn--primary confirm-btn" onClick={confirm}>
+            <Check aria-hidden /> Auswahl bestätigen
+          </button>
+        )}
+        {phase === 'ask' && wrong && !selected && (
           <div className="feedback feedback--wrong" key={`w-${tries}`}>
             <p className="feedback-head">
               <X aria-hidden />
@@ -176,9 +220,9 @@ export function EasyQuiz({ onExit }: { onExit: () => void }) {
           <div className={`feedback feedback--${phase}`}>
             <p className="feedback-head">
               {phase === 'right' && <Check aria-hidden />}
-              <span>{phase === 'right' ? `Richtig! Das ist ${target.name}.` : `Hier ist ${target.name}.`}</span>
+              <span>{phase === 'right' ? `Richtig! ${item.answer}` : item.answer}</span>
             </p>
-            <p className="feedback-body">{target.fact}</p>
+            <p className="feedback-body">{item.fact}</p>
             <button className="btn btn--primary btn--small" onClick={next} autoFocus>
               Weiter <ArrowRight aria-hidden />
             </button>

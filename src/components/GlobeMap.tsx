@@ -165,7 +165,9 @@ function GlobeMapInner({
         const fill = m
           ? m === 'wrong'
             ? col.wrong
-            : col.right
+            : m === 'pick'
+              ? col.ring
+              : col.right
           : !s.id || !pool.has(s.id)
             ? col.out
             : col.bunt
@@ -219,7 +221,7 @@ function GlobeMapInner({
       if (geoDistance(c.ll, mid) > Math.PI / 2 - 0.03) continue
       const p = projection(c.ll)
       if (!p) continue
-      ctx.fillStyle = m ? (m === 'wrong' ? col.wrong : col.right) : col.bunt ? col[`c${c.col}`] : col[`lv${levels[c.id] ?? 0}`]
+      ctx.fillStyle = m ? (m === 'wrong' ? col.wrong : m === 'pick' ? col.ring : col.right) : col.bunt ? col[`c${c.col}`] : col[`lv${levels[c.id] ?? 0}`]
       ctx.strokeStyle = col.pin
       ctx.lineWidth = m ? 3 : 1.5
       ctx.beginPath()
