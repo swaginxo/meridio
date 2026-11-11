@@ -47,6 +47,8 @@ export interface Settings {
   globe: boolean
   /** Lernfarben während einer Runde auf der Karte zeigen. */
   showLevels: boolean
+  /** Vereinfachter Modus für Kinder: nur Kontinente, mit Tipp zu jeder Frage. */
+  michelle: boolean
   len: 10 | 20
 }
 

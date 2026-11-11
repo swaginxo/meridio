@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { actions, useProfile } from './lib/store'
 import { themeOf } from './lib/themes'
 import type { Mode, Region } from './lib/types'
+import { EasyQuiz } from './screens/EasyQuiz'
 import { Home } from './screens/Home'
 import { ProfileScreen } from './screens/ProfileScreen'
 import { Quiz } from './screens/Quiz'
@@ -40,7 +41,11 @@ export default function App() {
   if (quiz) {
     return (
       <div className="shell shell--quiz">
-        <Quiz key={`${profile.id}-${mode}-${quiz}`} mode={mode} region={quiz} onExit={() => setQuiz(null)} />
+        {profile.settings.michelle ? (
+          <EasyQuiz key={profile.id} onExit={() => setQuiz(null)} />
+        ) : (
+          <Quiz key={`${profile.id}-${mode}-${quiz}`} mode={mode} region={quiz} onExit={() => setQuiz(null)} />
+        )}
       </div>
     )
   }

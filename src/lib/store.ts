@@ -25,6 +25,7 @@ export function newProfile(name: string, settings?: Partial<Settings>): Profile 
       pins: true,
       globe: false,
       showLevels: true,
+      michelle: false,
       len: 10,
       ...settings,
     },
@@ -111,6 +112,9 @@ export const actions = {
         [mode]: { ...p.progress[mode], [id]: review(p.progress[mode][id], tries, now) },
       },
     }))
+  },
+  addPoints(points: number) {
+    patch((p) => ({ ...p, points: p.points + points }))
   },
   finishRound(bonus: number) {
     patch((p) => ({ ...p, points: p.points + bonus, streak: markToday(p.streak, dayKey()) }))

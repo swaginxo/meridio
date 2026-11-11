@@ -1,5 +1,6 @@
 import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { RELIEF_BASE_SCALE, RELIEF_LAP, RELIEF_TILE, RELIEF_TILES } from '../data/relief-tiles'
+import { easyContinent } from '../lib/easy'
 import { BY_ID, COUNTRIES, WORLD } from '../lib/geo'
 import type { Box, Level } from '../lib/types'
 
@@ -277,7 +278,8 @@ function WorldMapInner({
     const m = marks?.[id]
     if (m) return `land is-${m}`
     if (!pool.has(id)) return 'land is-out'
-    return `land lv${levels[id] ?? 0} c${BY_ID[id]?.col ?? 0}`
+    const c = BY_ID[id]
+    return `land lv${levels[id] ?? 0} c${c?.col ?? 0}${c ? ` k-${easyContinent(c)}` : ''}`
   }
 
   return (

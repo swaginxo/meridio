@@ -125,6 +125,13 @@ export function ProfileScreen() {
       <section className="tile group">
         <div className="row">
           <div>
+            <p className="row-label">Michelle-Modus</p>
+            <p className="row-text">Ganz einfach für Kinder: nur Kontinente, mit Tipp zu jeder Frage</p>
+          </div>
+          <Switch on={settings.michelle} onChange={(v) => set({ michelle: v })} label="Michelle-Modus" />
+        </div>
+        <div className="row">
+          <div>
             <p className="row-label">3D-Weltkarte</p>
             <p className="row-text">Zeigt die Erde als drehbaren Globus im All. Gebirgsrelief gibt es nur auf der flachen Karte.</p>
           </div>

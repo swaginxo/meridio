@@ -1,9 +1,12 @@
 import { ArrowUpRight, Flame, Sparkles } from 'lucide-react'
 import { useMemo } from 'react'
 import { MapView } from '../components/MapView'
-import { levelsFor, poolFor, tally } from '../lib/geo'
+import { COUNTRIES, levelsFor, poolFor, tally } from '../lib/geo'
 import { useProfile } from '../lib/store'
 import { MODES, REGIONS, type Mode, type Region } from '../lib/types'
+
+const EMPTY = {}
+const ALL_IDS = new Set(COUNTRIES.filter((c) => c.d).map((c) => c.id))
 
 const HINT: Record<Mode, string> = {
   laender: 'Du erhältst einen Ländernamen und wählst das Land auf der Karte.',
@@ -40,6 +43,43 @@ export function Home({
   const worldIds = useMemo(() => new Set(world.map((c) => c.id)), [world])
   const worldTally = tally(world, levels)
   const learned = worldTally[2] + worldTally[3]
+
+  if (settings.michelle) {
+    return (
+      <div className="home easy">
+        <header className="top">
+          <div className="brand">
+            <svg viewBox="0 0 32 32" aria-hidden>
+              <circle cx="16" cy="16" r="13" />
+              <path d="M16 3c-6 4-6 22 0 26M16 3c6 4 6 22 0 26M4 12h24M4 20h24" />
+            </svg>
+            <span>meridio</span>
+          </div>
+          <button className="chip" onClick={onStreak} aria-label={`Streak: ${streak.count} Tage`}>
+            <Flame aria-hidden /> {streak.count}
+          </button>
+        </header>
+        <section className="hero">
+          <button className="hero-map" onClick={() => onStart('welt')} aria-label="Kontinente lernen starten">
+            <MapView
+              region="welt"
+              settings={{ ...settings, globe: false }}
+              levels={EMPTY}
+              pool={ALL_IDS}
+              interactive={false}
+              label="Weltkarte mit farbigen Kontinenten"
+            />
+          </button>
+        </section>
+        <button className="region region--world easy-start" onClick={() => onStart('welt')}>
+          <span className="region-name">Kontinente lernen</span>
+          <span className="region-count">Tippe auf den richtigen Kontinent. Zu jeder Frage gibt es einen Tipp.</span>
+          <ArrowUpRight className="region-go" aria-hidden />
+        </button>
+        <p className="hint">Der Michelle-Modus ist an. Im Profil kannst du ihn wieder ausschalten.</p>
+      </div>
+    )
+  }
 
   return (
     <div className="home">
