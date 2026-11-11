@@ -126,7 +126,6 @@ export function ProfileScreen() {
         <div className="row">
           <div>
             <p className="row-label">Michelle-Modus</p>
-            <p className="row-text">Ganz einfach für Kinder: nur Kontinente, mit Tipp zu jeder Frage</p>
           </div>
           <Switch on={settings.michelle} onChange={(v) => set({ michelle: v })} label="Michelle-Modus" />
         </div>
