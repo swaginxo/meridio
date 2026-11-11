@@ -7,8 +7,8 @@ import type { Settings } from '../lib/types'
 
 const count = (fn: (c: (typeof COUNTRIES)[number]) => boolean) => COUNTRIES.filter(fn).length
 const FILTERS: { key: 'klein' | 'abhaengig' | 'umstritten'; label: string; text: string; n: number }[] = [
-  { key: 'klein', label: 'Kleinstaaten', text: 'Monaco, Malta, Nauru und andere', n: count((c) => c.kind === 'staat' && c.small) },
-  { key: 'abhaengig', label: 'Abhängige Gebiete', text: 'Grönland, Puerto Rico, Neukaledonien und andere', n: count((c) => c.kind === 'abhaengig') },
+  { key: 'klein', label: 'Kleinstaaten', text: 'Monaco, Malta, Nauru und weitere', n: count((c) => c.kind === 'staat' && c.small) },
+  { key: 'abhaengig', label: 'Abhängige Gebiete', text: 'Grönland, Puerto Rico, Neukaledonien und weitere', n: count((c) => c.kind === 'abhaengig') },
   { key: 'umstritten', label: 'Umstrittene Gebiete', text: 'Kosovo, Taiwan, Westsahara', n: count((c) => c.kind === 'umstritten') },
 ]
 
@@ -57,10 +57,10 @@ export function ProfileScreen() {
       setNote(
         p
           ? { ok: true, text: `Spielstand von ${p.name} geladen.` }
-          : { ok: false, text: 'Das ist keine Meridio-Datei. Wähle eine Datei, die du hier gesichert hast.' },
+          : { ok: false, text: 'Diese Datei ist kein Meridio-Spielstand. Wähle eine Datei, die hier gesichert wurde.' },
       )
     } catch {
-      setNote({ ok: false, text: 'Die Datei lässt sich nicht lesen. Wähle eine Datei, die du hier gesichert hast.' })
+      setNote({ ok: false, text: 'Die Datei kann nicht gelesen werden. Wähle eine Datei, die hier gesichert wurde.' })
     }
     if (file.current) file.current.value = ''
   }
@@ -71,7 +71,7 @@ export function ProfileScreen() {
 
       <section className="tile group">
         <label className="field">
-          <span>Dein Name</span>
+          <span>Name</span>
           <input
             value={name}
             maxLength={24}
@@ -88,7 +88,7 @@ export function ProfileScreen() {
                 <button onClick={() => actions.switchProfile(p.id)}>
                   <span className="avatar">{p.name.slice(0, 1).toUpperCase()}</span>
                   <span>{p.name}</span>
-                  <small>wechseln</small>
+                  <small>Wechseln</small>
                 </button>
               </li>
             ))}
@@ -99,7 +99,7 @@ export function ProfileScreen() {
         </button>
       </section>
 
-      <h2 className="group-title">Aussehen</h2>
+      <h2 className="group-title">Darstellung</h2>
       <div className="themes" role="radiogroup" aria-label="Farbschema">
         {THEMES.map((t) => (
           <button
@@ -122,7 +122,7 @@ export function ProfileScreen() {
         ))}
       </div>
 
-      <h2 className="group-title">Was abgefragt wird</h2>
+      <h2 className="group-title">Ortsfilter</h2>
       <section className="tile group">
         {FILTERS.map((f) => (
           <div className="row" key={f.key}>
@@ -135,13 +135,6 @@ export function ProfileScreen() {
             <Switch on={settings[f.key]} onChange={(v) => set({ [f.key]: v })} label={f.label} />
           </div>
         ))}
-        <div className="row">
-          <div>
-            <p className="row-label">Insel-Pins</p>
-            <p className="row-text">Kleine Staaten als Punkt markieren, damit du sie triffst</p>
-          </div>
-          <Switch on={settings.pins} onChange={(v) => set({ pins: v })} label="Insel-Pins" />
-        </div>
         <div className="row">
           <div>
             <p className="row-label">Rundenlänge</p>
@@ -166,8 +159,8 @@ export function ProfileScreen() {
       <h2 className="group-title">Spielstand</h2>
       <section className="tile group">
         <p className="row-text">
-          Dein Spielstand liegt nur in diesem Browser. Sichere ihn als Datei, um ihn auf ein anderes Gerät
-          mitzunehmen oder nach dem Löschen der Browserdaten zurückzuholen.
+          Der Spielstand wird nur in diesem Browser gespeichert. Sichere ihn als Datei, um ihn auf ein anderes
+          Gerät zu übertragen oder nach dem Löschen der Browserdaten wiederherzustellen.
         </p>
         <div className="pair">
           <button className="btn btn--deep" onClick={exportProfile}>

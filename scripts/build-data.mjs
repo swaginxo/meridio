@@ -3,10 +3,11 @@
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { geoNaturalEarth1, geoPath } from 'd3-geo'
+// Geometrie: Natural Earth 1:10m, hier auf Zoomtiefe der App vereinfacht.
 import { feature } from 'topojson-client'
 
 const require = createRequire(import.meta.url)
-const topo = JSON.parse(readFileSync(require.resolve('world-atlas/countries-50m.json'), 'utf8'))
+const topo = JSON.parse(readFileSync(require.resolve('world-atlas/countries-10m.json'), 'utf8'))
 const countries = require('world-countries')
 
 const W = 2000
@@ -48,7 +49,22 @@ const NAME_DE = {
 
 const DISPUTED = new Set(['XK', 'TW', 'EH'])
 // Features ohne ISO-Nummer in world-atlas: Name -> Land, dem die Fläche zugeschlagen wird.
-const NAME_TO_CCA2 = { Kosovo: 'XK', 'N. Cyprus': 'CY', Somaliland: 'SO' }
+const NAME_TO_CCA2 = {
+  Kosovo: 'XK', 'N. Cyprus': 'CY', 'Cyprus U.N. Buffer Zone': 'CY', Dhekelia: 'CY', Akrotiri: 'CY',
+  Somaliland: 'SO', Baikonur: 'KZ', 'USNB Guantanamo Bay': 'CU',
+}
+
+const SUB_DE = {
+  'Northern Europe': 'in Nordeuropa', 'Western Europe': 'in Westeuropa', 'Southern Europe': 'in Südeuropa',
+  'Eastern Europe': 'in Osteuropa', 'Southeast Europe': 'in Südosteuropa', 'Central Europe': 'in Mitteleuropa',
+  'Western Asia': 'in Vorderasien', 'Central Asia': 'in Zentralasien', 'Southern Asia': 'in Südasien',
+  'South-Eastern Asia': 'in Südostasien', 'Eastern Asia': 'in Ostasien', 'Northern Africa': 'in Nordafrika',
+  'Western Africa': 'in Westafrika', 'Middle Africa': 'in Zentralafrika', 'Eastern Africa': 'in Ostafrika',
+  'Southern Africa': 'im südlichen Afrika', 'North America': 'in Nordamerika',
+  'Central America': 'in Mittelamerika', Caribbean: 'in der Karibik', 'South America': 'in Südamerika',
+  'Australia and New Zealand': 'in Ozeanien', Melanesia: 'in Melanesien im Südpazifik',
+  Micronesia: 'in Mikronesien im Westpazifik', Polynesia: 'in Polynesien im Südpazifik',
+}
 
 function continentOf(c) {
   if (c.region === 'Americas') return c.subregion === 'South America' ? 'suedamerika' : 'nordamerika'
@@ -57,7 +73,82 @@ function continentOf(c) {
 
 const projection = geoNaturalEarth1().fitExtent([[10, 10], [W - 10, H - 10]], { type: 'Sphere' })
 const path = geoPath(projection)
-const round = (d) => d.replace(/-?\d+\.\d+/g, (n) => String(Math.round(Number(n) * 10) / 10))
+
+/** Projizierte Ringe eines Features einsammeln (inklusive Zuschnitt am Kartenrand). */
+function ringsOf(f) {
+  const rings = []
+  let cur = null
+  geoPath(projection, {
+    moveTo(x, y) { cur = [[x, y]]; rings.push(cur) },
+    lineTo(x, y) { cur.push([x, y]) },
+    closePath() {},
+    arc() {},
+  })(f)
+  return rings
+}
+
+const ringArea = (r) => {
+  let a = 0
+  for (let i = 0, j = r.length - 1; i < r.length; j = i++) a += r[j][0] * r[i][1] - r[i][0] * r[j][1]
+  return Math.abs(a / 2)
+}
+
+/** Douglas-Peucker ohne Rekursion. */
+function simplify(pts, tol) {
+  if (pts.length < 5 || tol <= 0) return pts
+  const keep = new Uint8Array(pts.length)
+  keep[0] = keep[pts.length - 1] = 1
+  const stack = [[0, pts.length - 1]]
+  const t2 = tol * tol
+  while (stack.length) {
+    const [a, b] = stack.pop()
+    const [ax, ay] = pts[a]
+    const dx = pts[b][0] - ax
+    const dy = pts[b][1] - ay
+    const len = dx * dx + dy * dy
+    let max = 0
+    let at = -1
+    for (let i = a + 1; i < b; i++) {
+      const px = pts[i][0] - ax
+      const py = pts[i][1] - ay
+      let d
+      if (len === 0) d = px * px + py * py
+      else {
+        const t = Math.max(0, Math.min(1, (px * dx + py * dy) / len))
+        d = (px - t * dx) ** 2 + (py - t * dy) ** 2
+      }
+      if (d > max) { max = d; at = i }
+    }
+    if (max > t2) { keep[at] = 1; stack.push([a, at], [at, b]) }
+  }
+  return pts.filter((_, i) => keep[i])
+}
+
+const TOL = 0.075 // Karteneinheiten, bei maximalem Zoom unter einem Pixel
+const num = (n) => String(Math.round(n * 100) / 100)
+
+/** Kleine Länder bleiben unverändert, große verlieren nur Details unterhalb der Zoomtiefe. */
+function shapeOf(f) {
+  // Fehlerhaft orientierte Polygone liefern einen Ring um die ganze Erdkugel: verwerfen.
+  const rings = ringsOf(f).filter((r) => ringArea(r) < W * H * 0.4)
+  const total = rings.reduce((s, r) => s + ringArea(r), 0)
+  const small = total < 4
+  let d = ''
+  let main = null
+  for (const ring of rings) {
+    if (!main || ringArea(ring) > ringArea(main)) main = ring
+    if (!small && ringArea(ring) < 0.025) continue
+    const pts = small ? ring : simplify(ring, TOL)
+    if (pts.length < 3) continue
+    d += 'M' + pts.map((p) => `${num(p[0])},${num(p[1])}`).join('L') + 'Z'
+  }
+  if (!d) return null
+  // Für Tippfläche und Zoom zählt das größte Teilstück (Frankreich ohne Guayana, USA ohne Hawaii).
+  const xs = main.map((p) => p[0])
+  const ys = main.map((p) => p[1])
+  const box = [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)]
+  return { d, area: total, box, c: [(box[0] + box[2]) / 2, (box[1] + box[3]) / 2] }
+}
 
 const byNum = new Map(countries.map((c) => [c.ccn3, c]))
 const shapes = new Map() // cca2 -> { d, box, area }
@@ -66,34 +157,31 @@ const neutral = []
 for (const f of feature(topo, topo.objects.countries).features) {
   const c = f.id != null ? byNum.get(String(f.id).padStart(3, '0')) : null
   const cca2 = c?.cca2 ?? NAME_TO_CCA2[f.properties.name]
-  const d = path(f)
-  if (!d) continue
-  if (!cca2 || cca2 === 'AQ') { neutral.push(round(d)); continue }
-  const [[x0, y0], [x1, y1]] = path.bounds(f)
+  const shape = shapeOf(f)
+  if (!shape) continue
+  if (!cca2 || cca2 === 'AQ') { neutral.push(shape.d); continue }
   const prev = shapes.get(cca2)
-  if (prev) {
-    prev.d += round(d)
-  } else {
-    // Für Pin und Zoom zählt das größte Teilstück (Frankreich ohne Guayana, USA ohne Hawaii).
-    let main = f
-    if (f.geometry.type === 'MultiPolygon') {
-      let best = -1
-      for (const coords of f.geometry.coordinates) {
-        const part = { type: 'Feature', geometry: { type: 'Polygon', coordinates: coords } }
-        const a = path.area(part)
-        if (a > best) { best = a; main = part }
-      }
-    }
-    const [cx, cy] = path.centroid(main)
-    const [[mx0, my0], [mx1, my1]] = path.bounds(main)
-    shapes.set(cca2, {
-      d: round(d),
-      c: [cx, cy],
-      box: [mx0, my0, mx1, my1],
-      full: [x0, y0, x1, y1],
-      area: path.area(f),
-    })
-  }
+  // Zusatzflächen (z. B. Nordzypern) erweitern nur die Form des Hauptlands.
+  if (prev) prev.d += shape.d
+  else shapes.set(cca2, shape)
+}
+
+const cca3to2 = new Map(countries.map((c) => [c.cca3, c.cca2]))
+
+// Sechs Farben so verteilen, dass Nachbarn nie dieselbe bekommen.
+const COLORS = 6
+const color = new Map()
+const used = new Array(COLORS).fill(0)
+const order = [...countries].sort((a, b) => b.borders.length - a.borders.length || a.cca2.localeCompare(b.cca2))
+for (const c of order) {
+  const taken = new Set(c.borders.map((b) => color.get(cca3to2.get(b))).filter((n) => n != null))
+  // Kosovo fehlt in den Grenzlisten von world-countries.
+  if (c.cca2 === 'XK') for (const n of ['RS', 'AL', 'MK', 'ME']) taken.add(color.get(n))
+  let best = -1
+  for (let i = 0; i < COLORS; i++) if (!taken.has(i) && (best < 0 || used[i] < used[best])) best = i
+  if (best < 0) best = 0
+  color.set(c.cca2, best)
+  used[best]++
 }
 
 const out = []
@@ -116,8 +204,11 @@ for (const c of countries) {
     cont,
     kind,
     small: c.area < 1500,
-    // Pin, wenn das Land auf der Weltkarte zu klein zum Antippen ist.
-    pin: !shape || shape.area < 14,
+    // Zu klein zum sicheren Antippen: bekommt eine unsichtbare, größere Tippfläche.
+    tiny: !shape || shape.area < 14,
+    col: color.get(c.cca2) ?? 0,
+    sub: SUB_DE[c.subregion] ?? '',
+    nb: c.borders.map((b) => cca3to2.get(b)).filter(Boolean),
     c: pt.map(r1),
     box: shape ? shape.box.map(r1) : [pt[0] - 4, pt[1] - 4, pt[0] + 4, pt[1] + 4].map(r1),
     d: shape?.d ?? '',
@@ -153,13 +244,13 @@ mkdirSync(new URL('../src/data/', import.meta.url), { recursive: true })
 writeFileSync(
   new URL('../src/data/world.js', import.meta.url),
   '// Generiert von scripts/build-data.mjs, nicht von Hand bearbeiten.\nexport default ' +
-    JSON.stringify({ w: W, h: H, sphere: round(path({ type: 'Sphere' })), neutral: neutral.join(''), views, countries: out }) +
+    JSON.stringify({ w: W, h: H, sphere: path({ type: 'Sphere' }).replace(/-?\d+\.\d+/g, (n) => num(Number(n))), neutral: neutral.join(''), views, countries: out }) +
     '\n',
 )
 
 const count = (k) => out.filter((c) => c.kind === k).length
 console.log(`Länder: ${out.length} (Staaten ${count('staat')}, abhängig ${count('abhaengig')}, umstritten ${count('umstritten')})`)
 console.log('ohne Fläche:', out.filter((c) => !c.d).map((c) => c.id).join(' '))
-console.log('Pins:', out.filter((c) => c.pin).length, '| klein:', out.filter((c) => c.small && c.kind === 'staat').map((c) => c.id).join(' '))
+console.log('winzig:', out.filter((c) => c.tiny).length, '| klein:', out.filter((c) => c.small && c.kind === 'staat').map((c) => c.id).join(' '))
 for (const k of Object.keys(VIEWS_LL)) console.log(k, out.filter((c) => c.cont === k && c.kind === 'staat').length)
 if (process.argv.includes('--list')) for (const c of out) console.log(c.id, '|', c.name, '|', c.capital, '|', c.cont, '|', c.kind)

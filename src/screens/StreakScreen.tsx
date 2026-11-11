@@ -33,10 +33,10 @@ export function StreakScreen() {
         <p className="streak-unit">{streak.count === 1 ? 'Tag in Folge' : 'Tage in Folge'}</p>
         <p className="streak-note">
           {doneToday
-            ? 'Heute ist erledigt. Morgen geht es weiter.'
+            ? 'Heutiges Ziel erreicht.'
             : streak.count > 0
-              ? 'Spiel heute eine Runde, damit dein Streak weiterläuft.'
-              : 'Eine abgeschlossene Runde startet deinen Streak.'}
+              ? 'Schließe heute eine Runde ab, um deinen Streak zu halten.'
+              : 'Mit der ersten abgeschlossenen Runde beginnt dein Streak.'}
         </p>
       </section>
 
@@ -64,8 +64,8 @@ export function StreakScreen() {
           </div>
         </div>
         <p className="freeze-text">
-          Vergisst du einen Tag, wird automatisch ein Freeze eingesetzt und dein Streak bleibt stehen. Du kannst bis
-          zu {FREEZE_MAX} auf Vorrat halten.
+          Verpasst du einen Tag, wird automatisch ein Streak Freeze eingesetzt und dein Streak bleibt erhalten. Du
+          kannst bis zu {FREEZE_MAX} vorhalten.
         </p>
         <button
           className="btn btn--primary"
@@ -78,12 +78,12 @@ export function StreakScreen() {
         </button>
         <p className="freeze-state" aria-live="polite">
           {full
-            ? 'Dein Vorrat ist voll.'
+            ? 'Maximale Anzahl erreicht.'
             : short > 0
-              ? `Dir fehlen noch ${short} Punkte.`
+              ? `Es fehlen noch ${short} Punkte.`
               : bought
-                ? 'Gekauft. Der Freeze liegt bereit.'
-                : `Du hast ${points} Punkte.`}
+                ? 'Streak Freeze gekauft.'
+                : `Verfügbar: ${points} Punkte.`}
         </p>
       </section>
 
@@ -97,8 +97,8 @@ export function StreakScreen() {
           <dd>{streak.best}</dd>
         </div>
         <div>
-          <dt>Sofort richtig</dt>
-          <dd>{accuracy === null ? 'noch offen' : `${accuracy} %`}</dd>
+          <dt>Im ersten Versuch richtig</dt>
+          <dd>{accuracy === null ? 'keine Daten' : `${accuracy} %`}</dd>
         </div>
       </dl>
     </div>

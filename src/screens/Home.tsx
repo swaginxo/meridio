@@ -7,9 +7,9 @@ import { themeOf } from '../lib/themes'
 import { MODES, REGIONS, type Mode, type Region } from '../lib/types'
 
 const HINT: Record<Mode, string> = {
-  laender: 'Du bekommst einen Ländernamen und tippst das Land auf der Karte an.',
-  hauptstaedte: 'Du bekommst eine Hauptstadt und tippst das passende Land an.',
-  flaggen: 'Du siehst eine Flagge und tippst das passende Land an.',
+  laender: 'Du erhältst einen Ländernamen und wählst das Land auf der Karte.',
+  hauptstaedte: 'Du erhältst eine Hauptstadt und wählst das zugehörige Land auf der Karte.',
+  flaggen: 'Du siehst eine Flagge und wählst das zugehörige Land auf der Karte.',
 }
 
 export function Meter({ counts }: { counts: [number, number, number, number] }) {
@@ -66,7 +66,6 @@ export function Home({
             view={VIEWS.welt}
             levels={levels}
             pool={worldIds}
-            pins={false}
             relief={themeOf(settings.theme).relief}
             interactive={false}
             label="Dein Lernstand auf der Weltkarte"
@@ -78,18 +77,18 @@ export function Home({
               {learned}
               <small> von {world.length}</small>
             </p>
-            <p className="hero-label">{MODES.find((m) => m.id === mode)!.label} sitzen</p>
+            <p className="hero-label">{MODES.find((m) => m.id === mode)!.label} gelernt</p>
           </div>
           <ul className="legend" aria-label="Farben auf der Karte">
-            <li><i className="lv0" />neu</li>
-            <li><i className="lv1" />wacklig</li>
-            <li><i className="lv2" />gut</li>
-            <li><i className="lv3" />sicher</li>
+            <li><i className="lv0" />Neu</li>
+            <li><i className="lv1" />Unsicher</li>
+            <li><i className="lv2" />Gefestigt</li>
+            <li><i className="lv3" />Beherrscht</li>
           </ul>
         </div>
       </section>
 
-      <div className="seg" role="tablist" aria-label="Was möchtest du lernen?">
+      <div className="seg" role="tablist" aria-label="Lernmodus">
         {MODES.map((m) => (
           <button
             key={m.id}

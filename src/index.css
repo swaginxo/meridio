@@ -94,6 +94,65 @@
   color-scheme: light;
 }
 
+/* Politisch: farbig unterteilte Länder auf blauem Meer */
+:root[data-theme='bunt'] {
+  --bg: #eef4fa;
+  --tile: #ffffff;
+  --tile-2: #dde7f1;
+  --card: #232b36;
+  --on-card: #f1f5f9;
+  --on-card-2: #a9b6c4;
+  --ink: #1c2733;
+  --ink-2: #4f5d6b;
+  --line: rgb(28 39 51 / 0.12);
+  --track: rgb(241 245 249 / 0.18);
+  --lime: #ffb020;
+  --lime-2: #f39c06;
+  --on-lime: #2a1b00;
+  --on-lime-2: #5e4208;
+  --danger: #cf3a32;
+  --on-danger: #fff4f3;
+  --nav: #232b36;
+  --shadow: 0 12px 28px -14px rgb(28 39 51 / 0.4);
+
+  --ocean: #55b0ee;
+  --sea: #7ac6f9;
+  --land-out: #6c7176;
+  --lv0: #c3cdd8;
+  --lv1: #f6c93f;
+  --lv2: #8fd36a;
+  --lv3: #2f9e58;
+  --wrong: #e5484d;
+  --right: #2fd27f;
+  --border: rgb(255 255 255 / 0.92);
+  --ring: #ffffff;
+  --on-ocean: #0f2a40;
+  --on-ocean-2: #1f4763;
+  --hero-num: #0f2a40;
+  --map-track: rgb(15 42 64 / 0.22);
+  --map-fill: #0f2a40;
+  --chip-bg: rgb(35 43 54 / 0.94);
+  --chip-ink: #ffffff;
+  --relief: 0.5;
+  --c0: #f39a4f;
+  --c1: #8f72c2;
+  --c2: #6fbf7e;
+  --c3: #f4dd62;
+  --c4: #4f97b8;
+  --c5: #ee7d6b;
+
+  --pop: #ffb020;
+  --btn: #232b36;
+  --on-btn: #f1f5f9;
+  --btn-hover: #323d4b;
+  --seg-on: #232b36;
+  --on-seg-on: #f1f5f9;
+  --focus: #1c2733;
+  --nav-ink: #a9b6c4;
+  --nav-ink-on: #ffffff;
+  color-scheme: light;
+}
+
 /* Atlas: helle Reliefkarte mit blauem Meer und sandfarbenem Land */
 :root[data-theme='atlas'] {
   --bg: #f4efe1;
@@ -619,16 +678,13 @@ svg {
 .land.lv0 {
   fill: var(--lv0);
 }
-.land.lv1,
-.pin.lv1 .pin-dot {
+.land.lv1 {
   fill: var(--lv1);
 }
-.land.lv2,
-.pin.lv2 .pin-dot {
+.land.lv2 {
   fill: var(--lv2);
 }
-.land.lv3,
-.pin.lv3 .pin-dot {
+.land.lv3 {
   fill: var(--lv3);
 }
 .land.is-right,
@@ -638,8 +694,7 @@ svg {
 .land.is-wrong {
   fill: var(--wrong);
 }
-.map--live .land[data-id],
-.map--live .pin {
+.map--live .land[data-id] {
   cursor: pointer;
 }
 .land-ring {
@@ -658,30 +713,27 @@ svg {
 .land-ring.is-reveal {
   animation: ring 1.1s ease-in-out infinite alternate;
 }
-.pin-hit {
-  fill: transparent;
-}
 .map-relief {
   opacity: var(--relief);
   pointer-events: none;
 }
-.pin-dot {
-  fill: var(--lv0);
-  stroke: var(--pin-stroke);
-  stroke-width: 1.5px;
-  transition: fill 0.35s var(--ease);
+.land-hit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 18px;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  pointer-events: stroke;
+  cursor: pointer;
 }
-.pin.is-right .pin-dot,
-.pin.is-reveal .pin-dot {
-  fill: var(--right);
-  stroke-width: 3px;
-}
-.pin.is-reveal .pin-dot {
-  animation: ring 1.1s ease-in-out infinite alternate;
-}
-.pin.is-wrong .pin-dot {
-  fill: var(--wrong);
-}
+/* Buntes Theme: Jedes Land trägt seine eigene Kartenfarbe. */
+:root[data-theme='bunt'] .land.c0 { fill: var(--c0); }
+:root[data-theme='bunt'] .land.c1 { fill: var(--c1); }
+:root[data-theme='bunt'] .land.c2 { fill: var(--c2); }
+:root[data-theme='bunt'] .land.c3 { fill: var(--c3); }
+:root[data-theme='bunt'] .land.c4 { fill: var(--c4); }
+:root[data-theme='bunt'] .land.c5 { fill: var(--c5); }
+:root[data-theme='bunt'] .legend { display: none; }
 @keyframes ring {
   to {
     stroke-width: 5px;
@@ -946,12 +998,50 @@ svg {
   background: var(--map-fill);
   transition: width 0.5s var(--ease);
 }
-.quiz-points {
-  min-width: 2.75rem;
-  text-align: right;
+.quiz-bar {
+  align-items: flex-start;
+}
+.status {
+  display: grid;
+  gap: 0.3125rem;
+  width: min(15.5rem, 100%);
+  margin-left: auto;
+  padding: 0.625rem 0.875rem 0.75rem;
+  border-radius: var(--r-md);
+  background: var(--chip-bg);
+  color: #ffffff;
+  font-size: 0.8125rem;
+  line-height: 1.25;
+}
+.status-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.status-row span {
+  opacity: 0.78;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.status-row strong {
   font-family: var(--display);
   font-weight: 700;
-  color: var(--map-fill);
+}
+.status .progress {
+  flex: none;
+  height: 0.375rem;
+  margin-bottom: 0.25rem;
+  background: rgb(255 255 255 / 0.18);
+}
+.status .progress span {
+  background: var(--pop);
+}
+.status .meter {
+  height: 0.375rem;
+}
+.status .meter-seg.lv0 {
+  background: rgb(255 255 255 / 0.18);
 }
 
 .prompt {
@@ -994,42 +1084,59 @@ svg {
   }
 }
 
-.toast {
+.feedback {
+  display: grid;
+  gap: 0.5rem;
+  padding: 1rem 1rem 1rem 1.125rem;
+  border-radius: var(--r-lg);
+  background: #f7f8f3;
+  color: #17211d;
+  box-shadow: 0 14px 30px -14px rgb(0 0 0 / 0.6);
+  animation: feedback-in 0.4s var(--ease);
+}
+.feedback-head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  min-height: 3.75rem;
-  padding: 0.75rem 0.875rem 0.75rem 1.25rem;
-  border-radius: var(--r-lg);
-  background: #edf5dc;
-  color: #10291d;
-  font-size: 1.0625rem;
-  box-shadow: 0 14px 30px -14px rgb(0 0 0 / 0.6);
-  animation: toast-in 0.4s var(--ease);
-}
-.toast strong {
+  gap: 0.625rem;
   font-family: var(--display);
   font-weight: 700;
+  font-size: 1.125rem;
+  line-height: 1.2;
 }
-.toast > svg {
+.feedback-head svg {
   width: 1.5rem;
   height: 1.5rem;
+  padding: 0.25rem;
+  border-radius: 50%;
+  stroke-width: 3;
+  color: #ffffff;
 }
-.toast--right {
-  justify-content: flex-start;
-  background: var(--lime);
-  color: var(--on-lime);
+.feedback--right .feedback-head svg {
+  background: #1f9d57;
 }
-.toast--wrong {
-  background: #ffe1db;
-  color: #4a1309;
+.feedback--wrong .feedback-head svg {
+  background: #d4412f;
 }
-.toast .btn--primary {
+.feedback-body {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.9375rem;
+  line-height: 1.4;
+  color: #3d4a44;
+  text-wrap: pretty;
+}
+.feedback-body svg {
+  width: 1.125rem;
+  height: 1.125rem;
+  margin-top: 0.125rem;
+  color: #a06a00;
+}
+.feedback .btn--primary {
+  justify-self: end;
   background: #1c2b26;
   color: #f3f6ea;
 }
-@keyframes toast-in {
+@keyframes feedback-in {
   from {
     opacity: 0;
     translate: 0 0.75rem;

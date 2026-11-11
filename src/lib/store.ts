@@ -22,7 +22,6 @@ export function newProfile(name: string, settings?: Partial<Settings>): Profile 
       klein: true,
       abhaengig: false,
       umstritten: false,
-      pins: true,
       len: 10,
       ...settings,
     },

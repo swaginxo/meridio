@@ -2,7 +2,7 @@ export type Mode = 'laender' | 'hauptstaedte' | 'flaggen'
 export type Continent = 'europa' | 'asien' | 'afrika' | 'nordamerika' | 'suedamerika' | 'ozeanien'
 export type Region = 'welt' | Continent
 export type Level = 0 | 1 | 2 | 3
-export type Theme = 'wald' | 'limette' | 'atlas' | 'seekarte' | 'mitternacht' | 'sonnenuntergang'
+export type Theme = 'wald' | 'limette' | 'bunt' | 'atlas' | 'seekarte' | 'mitternacht' | 'sonnenuntergang'
 export type Box = [number, number, number, number]
 
 export interface Country {
@@ -12,7 +12,14 @@ export interface Country {
   cont: Continent
   kind: 'staat' | 'abhaengig' | 'umstritten'
   small: boolean
-  pin: boolean
+  /** Zu klein zum sicheren Antippen, bekommt eine größere unsichtbare Tippfläche. */
+  tiny: boolean
+  /** Index der Kartenfarbe im bunten Theme, Nachbarn unterscheiden sich. */
+  col: number
+  /** Lage als Satzteil, z. B. "in Westafrika". */
+  sub: string
+  /** ISO-Codes der Nachbarländer. */
+  nb: string[]
   c: [number, number]
   box: Box
   d: string
@@ -30,7 +37,6 @@ export interface Settings {
   klein: boolean
   abhaengig: boolean
   umstritten: boolean
-  pins: boolean
   len: 10 | 20
 }
 

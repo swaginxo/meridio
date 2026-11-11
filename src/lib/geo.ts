@@ -50,6 +50,7 @@ export function tally(pool: Country[], levels: Record<string, Level>): [number, 
 /** Kartenausschnitt, der ein Land mit etwas Umgebung zeigt. */
 export function boxAround(c: Country): Box {
   const [x0, y0, x1, y1] = c.box
-  const pad = Math.max(60, (x1 - x0) * 0.9, (y1 - y0) * 0.9)
+  // Kleine Länder näher heranholen, damit sie auf dem Bildschirm erkennbar sind.
+  const pad = Math.max(c.tiny ? 9 : 60, (x1 - x0) * 0.9, (y1 - y0) * 0.9)
   return [x0 - pad, y0 - pad, x1 + pad, y1 + pad]
 }

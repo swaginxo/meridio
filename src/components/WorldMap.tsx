@@ -1,5 +1,5 @@
 import { memo, useCallback, useEffect, useLayoutEffect, useRef } from 'react'
-import { COUNTRIES, WORLD } from '../lib/geo'
+import { BY_ID, COUNTRIES, WORLD } from '../lib/geo'
 import type { Box, Level } from '../lib/types'
 
 export type Mark = 'right' | 'wrong' | 'reveal'
@@ -11,7 +11,6 @@ interface Props {
   /** Orte, die abgefragt werden. Alles andere ist gedimmt und nicht antippbar. */
   pool: Set<string>
   marks?: Record<string, Mark>
-  pins?: boolean
   /** Gebirgsschattierung über dem Land einblenden. */
   relief?: boolean
   interactive?: boolean
@@ -27,16 +26,13 @@ interface T {
   y: number
 }
 
-const PIN_R = 6
-const PIN_HIT = 15
-const PINS = COUNTRIES.filter((c) => c.pin)
+const TINY = COUNTRIES.filter((c) => c.tiny && c.d)
 
 function WorldMapInner({
   view,
   levels,
   pool,
   marks,
-  pins = true,
   relief = false,
   interactive = true,
   onPick,
@@ -45,7 +41,6 @@ function WorldMapInner({
 }: Props) {
   const svg = useRef<SVGSVGElement>(null)
   const layer = useRef<SVGGElement>(null)
-  const pinLayer = useRef<SVGGElement>(null)
   const t = useRef<T>({ k: 1, x: 0, y: 0 })
   const size = useRef({ w: 0, h: 0 })
   const anim = useRef(0)
@@ -57,16 +52,6 @@ function WorldMapInner({
   const apply = useCallback(() => {
     const { k, x, y } = t.current
     layer.current?.setAttribute('transform', `translate(${x} ${y}) scale(${k})`)
-    // Pins behalten ihre Bildschirmgröße und verschwinden, sobald das Land groß genug ist.
-    const nodes = pinLayer.current?.children
-    if (!nodes) return
-    for (let i = 0; i < nodes.length; i++) {
-      const g = nodes[i] as SVGGElement
-      const span = Number(g.dataset.span)
-      const show = span * k < 22
-      g.style.display = show ? '' : 'none'
-      if (show) g.setAttribute('transform', `translate(${g.dataset.x} ${g.dataset.y}) scale(${1 / k})`)
-    }
   }, [])
 
   const target = useCallback((box: Box): T => {
@@ -148,7 +133,7 @@ function WorldMapInner({
     }
     const limits = () => {
       const base = target([0, 0, WORLD.w, WORLD.h]).k
-      return { min: base * 0.8, max: base * 60 }
+      return { min: base * 0.8, max: base * 140 }
     }
     const clamp = () => {
       const { w, h } = size.current
@@ -235,13 +220,11 @@ function WorldMapInner({
     }
   }, [interactive, apply, target])
 
-  useEffect(apply)
-
   const cls = (id: string) => {
     const m = marks?.[id]
     if (m) return `land is-${m}`
     if (!pool.has(id)) return 'land is-out'
-    return `land lv${levels[id] ?? 0}`
+    return `land lv${levels[id] ?? 0} c${BY_ID[id]?.col ?? 0}`
   }
 
   return (
@@ -273,22 +256,9 @@ function WorldMapInner({
             const c = COUNTRIES.find((x) => x.id === id)
             return c?.d ? <path key={`m-${id}`} className={`land-ring is-${marks[id]}`} d={c.d} /> : null
           })}
-        <g ref={pinLayer}>
-          {/* Orte ohne Kartenfläche brauchen ihren Pin immer. */}
-          {PINS.filter((c) => pool.has(c.id) && (pins || (!c.d && interactive))).map((c) => (
-              <g
-                key={c.id}
-                className={`pin ${marks?.[c.id] ? `is-${marks[c.id]}` : `lv${levels[c.id] ?? 0}`}`}
-                data-id={c.id}
-                data-x={c.c[0]}
-                data-y={c.c[1]}
-                data-span={c.d ? Math.max(c.box[2] - c.box[0], c.box[3] - c.box[1]) : 0}
-              >
-                {interactive && <circle className="pin-hit" r={PIN_HIT} />}
-                <circle className="pin-dot" r={PIN_R} />
-            </g>
-          ))}
-        </g>
+        {/* Unsichtbare, breitere Tippfläche für sehr kleine Länder. */}
+        {interactive &&
+          TINY.filter((c) => pool.has(c.id)).map((c) => <path key={`h-${c.id}`} className="land-hit" d={c.d} data-id={c.id} />)}
       </g>
     </svg>
   )

@@ -1,10 +1,12 @@
-import { ArrowRight, Check, Flame, RotateCcw, X } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { ArrowRight, Check, Flame, Lightbulb, RotateCcw, X } from 'lucide-react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { WorldMap, type Mark } from '../components/WorldMap'
-import { BY_ID, VIEWS, accepts, boxAround, flagOf, levelsFor, poolFor } from '../lib/geo'
+import { BY_ID, VIEWS, accepts, boxAround, flagOf, levelsFor, poolFor, tally } from '../lib/geo'
 import { drawRound } from '../lib/srs'
 import { actions, useProfile } from '../lib/store'
 import { themeOf } from '../lib/themes'
+import { factFor, tipFor } from '../lib/tips'
+import { Meter } from './Home'
 import { MODES, REGIONS, type Box, type Mode, type Region } from '../lib/types'
 
 const POINTS = [0, 10, 6, 3]
@@ -44,16 +46,12 @@ export function Quiz({ mode, region, onExit }: { mode: Mode; region: Region; onE
     resultsRef.current = [...resultsRef.current, r]
     setResults(resultsRef.current)
   }
-  const timer = useRef(0)
 
   const targetId = queue[idx]
   const target = BY_ID[targetId]
   const levels = useMemo(() => levelsFor(profile.progress[mode], Date.now()), [profile.progress, mode])
 
-  useEffect(() => () => clearTimeout(timer.current), [])
-
   const next = useCallback(() => {
-    clearTimeout(timer.current)
     setMarks({})
     setLastWrong(null)
     setTries(0)
@@ -85,7 +83,6 @@ export function Quiz({ mode, region, onExit }: { mode: Mode; region: Region; onE
         setMarks({ [targetId]: 'right' })
         setLastWrong(null)
         setPhase('right')
-        timer.current = window.setTimeout(next, 950)
         return
       }
       const used = tries + 1
@@ -108,7 +105,7 @@ export function Quiz({ mode, region, onExit }: { mode: Mode; region: Region; onE
         setMarks((m) => ({ ...m, [id]: 'wrong' }))
       }
     },
-    [phase, target, targetId, tries, mode, idx, total, next],
+    [phase, target, targetId, tries, mode, idx, total],
   )
 
   const restart = () => {
@@ -128,7 +125,7 @@ export function Quiz({ mode, region, onExit }: { mode: Mode; region: Region; onE
     setPhase('ask')
   }
 
-  const inset = useMemo(() => ({ top: 150, bottom: 96 }), [])
+  const inset = useMemo(() => ({ top: 196, bottom: 150 }), [])
   const regionLabel = REGIONS.find((r) => r.id === region)!.label
   const modeLabel = MODES.find((m) => m.id === mode)!.label
 
@@ -142,7 +139,7 @@ export function Quiz({ mode, region, onExit }: { mode: Mode; region: Region; onE
           <p className="summary-meta">
             {modeLabel} · {regionLabel}
           </p>
-          <h1>{firstTry === total ? 'Fehlerfrei.' : firstTry >= total * 0.7 ? 'Starke Runde.' : 'Runde geschafft.'}</h1>
+          <h1>{firstTry === total ? 'Fehlerfrei' : firstTry >= total * 0.7 ? 'Sehr gute Runde' : 'Runde abgeschlossen'}</h1>
         </header>
 
         <div className="summary-grid">
@@ -151,7 +148,7 @@ export function Quiz({ mode, region, onExit }: { mode: Mode; region: Region; onE
               {firstTry}
               <small>/{total}</small>
             </span>
-            <span className="stat-label">sofort richtig</span>
+            <span className="stat-label">im ersten Versuch</span>
           </div>
           <div className="tile stat">
             <span className="stat-num">+{gained}</span>
@@ -164,7 +161,7 @@ export function Quiz({ mode, region, onExit }: { mode: Mode; region: Region; onE
                 {streakNow} {streakNow === 1 ? 'Tag' : 'Tage'}
               </span>
               <span className="stat-label">
-                {streakNow > streakBefore ? 'Streak verlängert' : 'Streak für heute steht schon'}
+                {streakNow > streakBefore ? 'Streak verlängert' : 'Heutiges Ziel bereits erreicht'}
               </span>
             </div>
           </div>
@@ -172,7 +169,7 @@ export function Quiz({ mode, region, onExit }: { mode: Mode; region: Region; onE
 
         {missed.length > 0 && (
           <section className="missed">
-            <h2>Noch mal anschauen</h2>
+            <h2>Zur Wiederholung</h2>
             <ul>
               {missed.map((r) => {
                 const c = BY_ID[r.id]
@@ -193,7 +190,7 @@ export function Quiz({ mode, region, onExit }: { mode: Mode; region: Region; onE
             <RotateCcw aria-hidden /> Nächste Runde
           </button>
           <button className="btn btn--ghost" onClick={onExit}>
-            Fertig
+            Beenden
           </button>
         </div>
       </div>
@@ -204,8 +201,8 @@ export function Quiz({ mode, region, onExit }: { mode: Mode; region: Region; onE
     return (
       <div className="summary">
         <header className="summary-head">
-          <h1>Hier gibt es nichts abzufragen.</h1>
-          <p className="summary-meta">Mit deinen Ortsfiltern bleibt in {regionLabel} kein Ort übrig.</p>
+          <h1>Keine Orte verfügbar</h1>
+          <p className="summary-meta">Mit den aktuellen Ortsfiltern enthält {regionLabel} keine Orte.</p>
         </header>
         <div className="summary-actions">
           <button className="btn btn--primary" onClick={onExit}>
@@ -218,7 +215,9 @@ export function Quiz({ mode, region, onExit }: { mode: Mode; region: Region; onE
 
   const left = MAX_TRIES - tries
   const wrong = lastWrong ? BY_ID[lastWrong] : null
-  const done = Math.min(idx, total)
+  const done = Math.min(idx + (phase === 'ask' ? 0 : 1), total)
+  const counts = tally(pool, levels)
+  const fact = factFor(target)
 
   return (
     <div className="quiz">
@@ -227,7 +226,6 @@ export function Quiz({ mode, region, onExit }: { mode: Mode; region: Region; onE
         levels={levels}
         pool={poolIds}
         marks={marks}
-        pins={settings.pins}
         relief={themeOf(settings.theme).relief}
         onPick={pick}
         inset={inset}
@@ -239,17 +237,33 @@ export function Quiz({ mode, region, onExit }: { mode: Mode; region: Region; onE
           <button className="icon-btn" onClick={onExit} aria-label="Runde beenden">
             <X aria-hidden />
           </button>
-          <div
-            className="progress"
-            role="progressbar"
-            aria-valuemin={0}
-            aria-valuemax={total}
-            aria-valuenow={done}
-            aria-label="Fortschritt in dieser Runde"
-          >
-            <span style={{ width: `${(done / total) * 100}%` }} />
+          <div className="status">
+            <div className="status-row">
+              <span>
+                {modeLabel} · {regionLabel}
+              </span>
+              <strong>
+                {done}/{total}
+              </strong>
+            </div>
+            <div
+              className="progress"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={total}
+              aria-valuenow={done}
+              aria-label="Fortschritt in dieser Runde"
+            >
+              <span style={{ width: `${(done / total) * 100}%` }} />
+            </div>
+            <div className="status-row">
+              <span>Lernstand</span>
+              <strong>
+                {counts[2] + counts[3]}/{pool.length}
+              </strong>
+            </div>
+            <Meter counts={counts} />
           </div>
-          <span className="quiz-points">+{gained}</span>
         </div>
 
         <div className="prompt" key={`${round}-${idx}`}>
@@ -257,14 +271,14 @@ export function Quiz({ mode, region, onExit }: { mode: Mode; region: Region; onE
             <>
               <img className="prompt-flag" src={flagOf(targetId)} alt="Gesuchte Flagge" />
               <div>
-                <p className="prompt-ask">Welches Land hat diese Flagge?</p>
+                <p className="prompt-ask">Welches Land führt diese Flagge?</p>
                 {phase !== 'ask' && <p className="prompt-name">{target.name}</p>}
               </div>
             </>
           ) : (
             <div>
               <p className="prompt-ask">
-                {mode === 'laender' ? 'Tippe auf die Karte' : 'Welches Land hat die Hauptstadt'}
+                {mode === 'laender' ? 'Wähle auf der Karte' : 'Welches Land hat die Hauptstadt'}
                 {idx >= total ? ' · Wiederholung' : ''}
               </p>
               <p className="prompt-name">{mode === 'laender' ? target.name : target.capital}</p>
@@ -274,39 +288,37 @@ export function Quiz({ mode, region, onExit }: { mode: Mode; region: Region; onE
       </div>
 
       <div className="quiz-bottom" aria-live="polite">
-        {phase === 'right' && (
-          <div className="toast toast--right">
-            <Check aria-hidden />
-            <span>
-              Richtig{mode === 'hauptstaedte' ? `, ${target.name}` : ''}
-              {tries === 0 && idx < total ? '. Sofort gewusst.' : '.'}
-            </span>
-          </div>
-        )}
         {phase === 'ask' && wrong && (
-          <div className="toast toast--wrong">
-            <span>
-              Das ist <strong>{wrong.name}</strong>. Noch {left} {left === 1 ? 'Versuch' : 'Versuche'}.
-            </span>
+          <div className="feedback feedback--wrong" key={`w-${tries}`}>
+            <p className="feedback-head">
+              <X aria-hidden />
+              <span>
+                Das ist {wrong.name}. Noch {left} {left === 1 ? 'Versuch' : 'Versuche'}.
+              </span>
+            </p>
+            <p className="feedback-body">
+              <Lightbulb aria-hidden />
+              <span>{tipFor(mode, target)}</span>
+            </p>
           </div>
         )}
-        {phase === 'reveal' && (
-          <div className="toast toast--reveal">
-            <span>
-              {mode === 'laender' ? (
-                <>
-                  Hier liegt <strong>{target.name}</strong>.
-                </>
-              ) : mode === 'hauptstaedte' ? (
-                <>
-                  <strong>{target.capital}</strong> ist die Hauptstadt von <strong>{target.name}</strong>.
-                </>
-              ) : (
-                <>
-                  Die Flagge gehört zu <strong>{target.name}</strong>.
-                </>
-              )}
-            </span>
+        {(phase === 'right' || phase === 'reveal') && (
+          <div className={`feedback feedback--${phase}`}>
+            <p className="feedback-head">
+              {phase === 'right' && <Check aria-hidden />}
+              <span>
+                {phase === 'right'
+                  ? mode === 'laender'
+                    ? 'Richtig'
+                    : `Richtig: ${target.name}`
+                  : mode === 'laender'
+                    ? `Hier liegt ${target.name}.`
+                    : mode === 'hauptstaedte'
+                      ? `${target.capital} ist die Hauptstadt von ${target.name}.`
+                      : `Die Flagge gehört zu ${target.name}.`}
+              </span>
+            </p>
+            {fact && <p className="feedback-body">{fact}</p>}
             <button className="btn btn--primary btn--small" onClick={next} autoFocus>
               Weiter <ArrowRight aria-hidden />
             </button>
