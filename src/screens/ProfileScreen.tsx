@@ -1,13 +1,9 @@
 import { Check, Download, Plus, Trash2, Upload } from 'lucide-react'
-import { useRef, useState } from 'react'
+import { useRef, useState, type CSSProperties } from 'react'
 import { COUNTRIES } from '../lib/geo'
 import { actions, useProfile, useStore } from '../lib/store'
-import type { Settings, Theme } from '../lib/types'
-
-const THEMES: { id: Theme; label: string; text: string }[] = [
-  { id: 'wald', label: 'Wald', text: 'Dunkel und ruhig' },
-  { id: 'limette', label: 'Limette', text: 'Hell und verspielt' },
-]
+import { THEMES } from '../lib/themes'
+import type { Settings } from '../lib/types'
 
 const count = (fn: (c: (typeof COUNTRIES)[number]) => boolean) => COUNTRIES.filter(fn).length
 const FILTERS: { key: 'klein' | 'abhaengig' | 'umstritten'; label: string; text: string; n: number }[] = [
@@ -110,11 +106,14 @@ export function ProfileScreen() {
             key={t.id}
             role="radio"
             aria-checked={settings.theme === t.id}
-            className={`theme theme--${t.id}`}
+            className="theme"
+            style={{ '--t-bg': t.bg, '--t-ink': t.ink } as CSSProperties}
             onClick={() => set({ theme: t.id })}
           >
             <span className="theme-swatch" aria-hidden>
-              <i /><i /><i />
+              {t.swatch.map((c) => (
+                <i key={c} style={{ background: c }} />
+              ))}
             </span>
             <span className="theme-name">{t.label}</span>
             <span className="theme-text">{t.text}</span>

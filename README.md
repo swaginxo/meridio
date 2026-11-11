@@ -17,7 +17,8 @@ npm run dev
 - `src/lib/srs.ts` ist die Lernlogik: vier Stufen (grau, gelb, hellgrün, dunkelgrün), die mit der Zeit verblassen. Schwache und verblasste Orte werden häufiger gezogen.
 - `src/lib/streak.ts` rechnet Streak und Streak Freezes, `src/lib/store.ts` hält Profile und speichert.
 - `src/components/WorldMap.tsx` ist die zoombare SVG-Karte, `src/screens/` enthält Start, Quiz, Streak und Profil.
-- `src/index.css` enthält beide Themes (Wald und Limette) als CSS-Variablen auf `data-theme`.
+- `src/index.css` enthält alle Themes als CSS-Variablen auf `data-theme`, `src/lib/themes.ts` die Liste für die Auswahl im Profil.
+- `scripts/build-relief.mjs` rechnet die Gebirgsschattierung von Natural Earth (gemeinfrei) in die Kartenprojektion um und schreibt `public/relief.webp`. Die Themes Atlas und Alte Seekarte blenden sie ein.
 
 ## Regeln
 

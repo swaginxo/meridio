@@ -3,6 +3,7 @@ import { useMemo } from 'react'
 import { WorldMap } from '../components/WorldMap'
 import { VIEWS, levelsFor, poolFor, tally } from '../lib/geo'
 import { useProfile } from '../lib/store'
+import { themeOf } from '../lib/themes'
 import { MODES, REGIONS, type Mode, type Region } from '../lib/types'
 
 const HINT: Record<Mode, string> = {
@@ -66,6 +67,7 @@ export function Home({
             levels={levels}
             pool={worldIds}
             pins={false}
+            relief={themeOf(settings.theme).relief}
             interactive={false}
             label="Dein Lernstand auf der Weltkarte"
           />

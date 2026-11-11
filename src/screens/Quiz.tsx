@@ -4,6 +4,7 @@ import { WorldMap, type Mark } from '../components/WorldMap'
 import { BY_ID, VIEWS, accepts, boxAround, flagOf, levelsFor, poolFor } from '../lib/geo'
 import { drawRound } from '../lib/srs'
 import { actions, useProfile } from '../lib/store'
+import { themeOf } from '../lib/themes'
 import { MODES, REGIONS, type Box, type Mode, type Region } from '../lib/types'
 
 const POINTS = [0, 10, 6, 3]
@@ -227,6 +228,7 @@ export function Quiz({ mode, region, onExit }: { mode: Mode; region: Region; onE
         pool={poolIds}
         marks={marks}
         pins={settings.pins}
+        relief={themeOf(settings.theme).relief}
         onPick={pick}
         inset={inset}
         label={`Karte: ${regionLabel}`}

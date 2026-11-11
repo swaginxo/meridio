@@ -1,6 +1,7 @@
 import { Flame, Globe2, UserRound } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { actions, useProfile } from './lib/store'
+import { themeOf } from './lib/themes'
 import type { Mode, Region } from './lib/types'
 import { Home } from './screens/Home'
 import { ProfileScreen } from './screens/ProfileScreen'
@@ -15,7 +16,6 @@ const TABS = [
   { id: 'profil', label: 'Profil', Icon: UserRound },
 ] as const
 
-const THEME_COLOR = { wald: '#0d241c', limette: '#eef1de' }
 
 export default function App() {
   const profile = useProfile()
@@ -26,7 +26,7 @@ export default function App() {
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme
-    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', quiz ? '#0b2019' : THEME_COLOR[theme])
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', quiz ? themeOf(theme).ocean : themeOf(theme).bg)
   }, [theme, quiz])
 
   // Verpasste Tage verrechnen: beim Start und wenn die App wieder in den Vordergrund kommt.

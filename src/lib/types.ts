@@ -2,7 +2,7 @@ export type Mode = 'laender' | 'hauptstaedte' | 'flaggen'
 export type Continent = 'europa' | 'asien' | 'afrika' | 'nordamerika' | 'suedamerika' | 'ozeanien'
 export type Region = 'welt' | Continent
 export type Level = 0 | 1 | 2 | 3
-export type Theme = 'wald' | 'limette'
+export type Theme = 'wald' | 'limette' | 'atlas' | 'seekarte' | 'mitternacht' | 'sonnenuntergang'
 export type Box = [number, number, number, number]
 
 export interface Country {

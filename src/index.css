@@ -29,6 +29,29 @@
   --lv2: #b9ef4e;
   --lv3: #1fb268;
   --wrong: #ff6b57;
+  --right: var(--lime);
+  --border: var(--sea);
+  --ring: #f6ffd9;
+  --pin-stroke: #edf5dc;
+  --on-ocean: #edf5dc;
+  --on-ocean-2: #a8c2a3;
+  --hero-num: var(--lime);
+  --map-track: rgb(237 245 220 / 0.16);
+  --map-fill: var(--lime);
+  --chip-bg: rgb(9 26 20 / 0.72);
+  --chip-ink: #edf5dc;
+  --relief: 0;
+
+  /* Akzent als Vordergrund auf dunklen Flächen, Buttons, Fokus */
+  --pop: var(--lime);
+  --btn: var(--lime);
+  --on-btn: var(--on-lime);
+  --btn-hover: var(--lime-2);
+  --seg-on: var(--lime);
+  --on-seg-on: var(--on-lime);
+  --focus: var(--lime);
+  --nav-ink: #b9d1b1;
+  --nav-ink-on: #edf5dc;
 
   --display: 'Gabarito Variable', 'Gabarito', system-ui, sans-serif;
   --text: 'Figtree Variable', 'Figtree', system-ui, sans-serif;
@@ -62,6 +85,212 @@
   --sea: #1a4333;
   --land-out: #245240;
   --lv0: #547565;
+  --btn: #1a4333;
+  --on-btn: #eef6dc;
+  --btn-hover: #235541;
+  --seg-on: #1a4333;
+  --on-seg-on: #eef6dc;
+  --focus: #14362a;
+  color-scheme: light;
+}
+
+/* Atlas: helle Reliefkarte mit blauem Meer und sandfarbenem Land */
+:root[data-theme='atlas'] {
+  --bg: #f4efe1;
+  --tile: #fffdf6;
+  --tile-2: #e8e0cb;
+  --card: #1d4f6e;
+  --on-card: #f2f7fa;
+  --on-card-2: #b4cfdd;
+  --ink: #1b3245;
+  --ink-2: #4d6274;
+  --line: rgb(27 50 69 / 0.13);
+  --track: rgb(242 247 250 / 0.2);
+  --lime: #ffc53d;
+  --lime-2: #f2b01e;
+  --on-lime: #2b2206;
+  --on-lime-2: #5c4a12;
+  --danger: #c93a25;
+  --on-danger: #fff4ef;
+  --nav: #1d4f6e;
+  --shadow: 0 12px 28px -14px rgb(27 50 69 / 0.4);
+
+  --ocean: #a5d3e6;
+  --sea: #bfe3f1;
+  --land-out: #d3d6cb;
+  --lv0: #f3e9cb;
+  --lv1: #f7c744;
+  --lv2: #a6d468;
+  --lv3: #3a9a56;
+  --wrong: #e8573f;
+  --right: #5fd873;
+  --border: rgb(92 78 52 / 0.55);
+  --ring: #1b3245;
+  --pin-stroke: #1b3245;
+  --on-ocean: #1b3245;
+  --on-ocean-2: #3f5b70;
+  --hero-num: #1b3245;
+  --map-track: rgb(27 50 69 / 0.2);
+  --map-fill: #1b3245;
+  --chip-bg: rgb(27 50 69 / 0.88);
+  --chip-ink: #f2f7fa;
+  --relief: 0.85;
+
+  --pop: #ffc53d;
+  --btn: #1d4f6e;
+  --on-btn: #f2f7fa;
+  --btn-hover: #24618a;
+  --seg-on: #1d4f6e;
+  --on-seg-on: #f2f7fa;
+  --focus: #1b3245;
+  --nav-ink: #b4cfdd;
+  --nav-ink-on: #f2f7fa;
+  color-scheme: light;
+}
+
+/* Alte Seekarte: Pergament, Walnuss, Ochsenblut */
+:root[data-theme='seekarte'] {
+  --bg: #efe3c8;
+  --tile: #f8efd9;
+  --tile-2: #e2d3b0;
+  --card: #3b2a1e;
+  --on-card: #f5ead2;
+  --on-card-2: #c9b594;
+  --ink: #33241a;
+  --ink-2: #66523f;
+  --line: rgb(51 36 26 / 0.17);
+  --track: rgb(245 234 210 / 0.2);
+  --lime: #a8362b;
+  --lime-2: #912c22;
+  --on-lime: #fff3e2;
+  --on-lime-2: #f6d3c4;
+  --danger: #a8362b;
+  --on-danger: #fff3e2;
+  --nav: #3b2a1e;
+  --shadow: 0 12px 28px -14px rgb(51 36 26 / 0.45);
+
+  --ocean: #d6c59d;
+  --sea: #e1d2ad;
+  --land-out: #c9b890;
+  --lv0: #f5ebd0;
+  --lv1: #e2ae35;
+  --lv2: #a3b85c;
+  --lv3: #4c783a;
+  --wrong: #b5382c;
+  --right: #7fc257;
+  --border: rgb(72 50 30 / 0.6);
+  --ring: #33241a;
+  --pin-stroke: #33241a;
+  --on-ocean: #33241a;
+  --on-ocean-2: #5e4a38;
+  --hero-num: #7d271e;
+  --map-track: rgb(51 36 26 / 0.2);
+  --map-fill: #33241a;
+  --chip-bg: rgb(51 36 26 / 0.88);
+  --chip-ink: #f5ead2;
+  --relief: 0.95;
+
+  --pop: #e6b54a;
+  --btn: #3b2a1e;
+  --on-btn: #f5ead2;
+  --btn-hover: #523b2a;
+  --seg-on: #3b2a1e;
+  --on-seg-on: #f5ead2;
+  --focus: #33241a;
+  --nav-ink: #c9b594;
+  --nav-ink-on: #f5ead2;
+  color-scheme: light;
+}
+
+/* Mitternacht: Nachtblau mit leuchtendem Türkis */
+:root[data-theme='mitternacht'] {
+  --bg: #0a0f26;
+  --tile: #131a3b;
+  --tile-2: #1d2651;
+  --card: #131a3b;
+  --on-card: #e8ecff;
+  --on-card-2: #9ba6d8;
+  --ink: #e8ecff;
+  --ink-2: #9ba6d8;
+  --line: rgb(232 236 255 / 0.11);
+  --track: rgb(232 236 255 / 0.13);
+  --lime: #7df0e2;
+  --lime-2: #5fe0d0;
+  --on-lime: #062028;
+  --on-lime-2: #1a4a52;
+  --danger: #ff7b8c;
+  --on-danger: #2a0810;
+  --nav: #1d2651;
+
+  --ocean: #060a1b;
+  --sea: #0c122e;
+  --land-out: #141b3d;
+  --lv0: #37427a;
+  --lv1: #ffd24a;
+  --lv2: #8fe46c;
+  --lv3: #17b97c;
+  --wrong: #ff6b7d;
+  --ring: #f2fffd;
+  --pin-stroke: #e8ecff;
+  --on-ocean: #e8ecff;
+  --on-ocean-2: #9ba6d8;
+  --map-track: rgb(232 236 255 / 0.16);
+  --chip-bg: rgb(6 10 27 / 0.75);
+  --chip-ink: #e8ecff;
+  --nav-ink: #9ba6d8;
+  --nav-ink-on: #e8ecff;
+  color-scheme: dark;
+}
+
+/* Sonnenuntergang: Pfirsich, Koralle, Pflaume */
+:root[data-theme='sonnenuntergang'] {
+  --bg: #ffefe4;
+  --tile: #fffaf5;
+  --tile-2: #ffdbc6;
+  --card: #4a2a6b;
+  --on-card: #fff0e6;
+  --on-card-2: #d8c1e8;
+  --ink: #3a1f52;
+  --ink-2: #6e5186;
+  --line: rgb(58 31 82 / 0.13);
+  --track: rgb(255 240 230 / 0.2);
+  --lime: #ff8562;
+  --lime-2: #f8714b;
+  --on-lime: #3a1206;
+  --on-lime-2: #6e2a14;
+  --danger: #c4283f;
+  --on-danger: #fff0f2;
+  --nav: #4a2a6b;
+  --shadow: 0 12px 28px -14px rgb(58 31 82 / 0.4);
+
+  --ocean: #3c2160;
+  --sea: #4a2a6b;
+  --land-out: #5a3980;
+  --lv0: #9278ad;
+  --lv1: #ffd24a;
+  --lv2: #a9e36c;
+  --lv3: #27b272;
+  --wrong: #ff4d74;
+  --right: #cdf97a;
+  --ring: #fff7ef;
+  --pin-stroke: #fff0e6;
+  --on-ocean: #fff0e6;
+  --on-ocean-2: #d8c1e8;
+  --hero-num: #ffb86b;
+  --map-track: rgb(255 240 230 / 0.18);
+  --map-fill: #ffb86b;
+  --chip-bg: rgb(40 20 66 / 0.78);
+  --chip-ink: #fff0e6;
+
+  --pop: #ffb86b;
+  --btn: #4a2a6b;
+  --on-btn: #fff0e6;
+  --btn-hover: #5d3786;
+  --seg-on: #4a2a6b;
+  --on-seg-on: #fff0e6;
+  --focus: #3a1f52;
+  --nav-ink: #d8c1e8;
+  --nav-ink-on: #fff0e6;
   color-scheme: light;
 }
 
@@ -124,11 +353,8 @@ button:disabled {
   cursor: not-allowed;
 }
 :focus-visible {
-  outline: 2.5px solid var(--lime);
+  outline: 2.5px solid var(--focus);
   outline-offset: 3px;
-}
-:root[data-theme='limette'] :focus-visible {
-  outline-color: var(--ink);
 }
 svg {
   flex: none;
@@ -167,7 +393,7 @@ svg {
   min-height: 3rem;
   padding: 0 1.125rem;
   border-radius: 999px;
-  color: #b9d1b1;
+  color: var(--nav-ink);
   font-family: var(--display);
   font-weight: 600;
   font-size: 0.9375rem;
@@ -185,7 +411,7 @@ svg {
 }
 @media (hover: hover) {
   .tabs button:not(.is-on):hover {
-    color: #edf5dc;
+    color: var(--nav-ink-on);
   }
 }
 
@@ -228,11 +454,10 @@ svg {
   opacity: 0.45;
 }
 .btn--primary {
-  background: var(--lime);
-  color: var(--on-lime);
+  background: var(--btn);
+  color: var(--on-btn);
 }
-.tile--lime .btn--primary,
-:root[data-theme='limette'] .btn--primary {
+.tile--lime .btn--primary {
   background: var(--card);
   color: var(--on-card);
 }
@@ -255,11 +480,11 @@ svg {
 }
 @media (hover: hover) {
   .btn--primary:hover:not(:disabled) {
-    background: var(--lime-2);
+    background: var(--btn-hover);
   }
-  .tile--lime .btn--primary:hover:not(:disabled),
-  :root[data-theme='limette'] .btn--primary:hover:not(:disabled) {
-    background: #235541;
+  .tile--lime .btn--primary:hover:not(:disabled) {
+    background: var(--card);
+    filter: brightness(1.18);
   }
   .btn--ghost:hover,
   .btn--deep:hover {
@@ -273,8 +498,8 @@ svg {
   width: 2.75rem;
   height: 2.75rem;
   border-radius: 50%;
-  background: rgb(9 26 20 / 0.72);
-  color: #edf5dc;
+  background: var(--chip-bg);
+  color: var(--chip-ink);
 }
 .icon-btn svg {
   width: 1.375rem;
@@ -300,12 +525,8 @@ svg {
     color 0.25s var(--ease);
 }
 .seg button.is-on {
-  background: var(--lime);
-  color: var(--on-lime);
-}
-:root[data-theme='limette'] .seg button.is-on {
-  background: var(--card);
-  color: var(--on-card);
+  background: var(--seg-on);
+  color: var(--on-seg-on);
 }
 .seg--small button {
   min-width: 3.25rem;
@@ -385,7 +606,7 @@ svg {
   fill: var(--sea);
 }
 .land {
-  stroke: var(--sea);
+  stroke: var(--border);
   stroke-width: 0.7px;
   stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
@@ -412,7 +633,7 @@ svg {
 }
 .land.is-right,
 .land.is-reveal {
-  fill: var(--lime);
+  fill: var(--right);
 }
 .land.is-wrong {
   fill: var(--wrong);
@@ -423,14 +644,15 @@ svg {
 }
 .land-ring {
   fill: none;
-  stroke: #f6ffd9;
+  stroke: var(--ring);
   stroke-width: 2px;
   stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
   pointer-events: none;
 }
 .land-ring.is-wrong {
-  stroke: #ffd9d2;
+  stroke: var(--ring);
+  opacity: 0.7;
   stroke-width: 1.25px;
 }
 .land-ring.is-reveal {
@@ -439,15 +661,19 @@ svg {
 .pin-hit {
   fill: transparent;
 }
+.map-relief {
+  opacity: var(--relief);
+  pointer-events: none;
+}
 .pin-dot {
   fill: var(--lv0);
-  stroke: #edf5dc;
+  stroke: var(--pin-stroke);
   stroke-width: 1.5px;
   transition: fill 0.35s var(--ease);
 }
 .pin.is-right .pin-dot,
 .pin.is-reveal .pin-dot {
-  fill: var(--lime);
+  fill: var(--right);
   stroke-width: 3px;
 }
 .pin.is-reveal .pin-dot {
@@ -520,7 +746,7 @@ svg {
   overflow: hidden;
   border-radius: var(--r-lg);
   background: var(--ocean);
-  color: #edf5dc;
+  color: var(--on-ocean);
 }
 .hero-map {
   display: block;
@@ -540,17 +766,17 @@ svg {
   font-size: 2.5rem;
   line-height: 1;
   letter-spacing: -0.02em;
-  color: var(--lime);
+  color: var(--hero-num);
 }
 .hero-num small {
   font-size: 1.0625rem;
   font-weight: 600;
   letter-spacing: 0;
-  color: #a8c2a3;
+  color: var(--on-ocean-2);
 }
 .hero-label {
   margin-top: 0.25rem;
-  color: #a8c2a3;
+  color: var(--on-ocean-2);
   font-size: 0.9375rem;
 }
 .legend {
@@ -558,7 +784,7 @@ svg {
   grid-template-columns: auto auto;
   gap: 0.25rem 0.875rem;
   font-size: 0.8125rem;
-  color: #a8c2a3;
+  color: var(--on-ocean-2);
 }
 .legend li {
   display: flex;
@@ -634,7 +860,7 @@ svg {
   right: 1rem;
   width: 1.375rem;
   height: 1.375rem;
-  color: var(--lime);
+  color: var(--pop);
   transition: translate 0.25s var(--ease);
 }
 .region--world {
@@ -654,14 +880,15 @@ svg {
   width: 1.75rem;
   height: 1.75rem;
 }
+/* Auf der Akzentfläche zeigt der Balken den Lernstand als Helligkeitsstufen. */
 .region--world .meter-seg.lv0 {
-  background: rgb(16 41 29 / 0.16);
+  background: color-mix(in srgb, var(--on-lime) 16%, transparent);
 }
 .region--world .meter-seg.lv1 {
-  background: #fff3a3;
+  background: color-mix(in srgb, var(--on-lime) 42%, transparent);
 }
 .region--world .meter-seg.lv2 {
-  background: #3f8f3a;
+  background: color-mix(in srgb, var(--on-lime) 70%, transparent);
 }
 .region--world .meter-seg.lv3 {
   background: var(--on-lime);
@@ -709,14 +936,14 @@ svg {
   flex: 1;
   height: 0.625rem;
   border-radius: 999px;
-  background: rgb(237 245 220 / 0.16);
+  background: var(--map-track);
   overflow: hidden;
 }
 .progress span {
   display: block;
   height: 100%;
   border-radius: 999px;
-  background: var(--lime);
+  background: var(--map-fill);
   transition: width 0.5s var(--ease);
 }
 .quiz-points {
@@ -724,7 +951,7 @@ svg {
   text-align: right;
   font-family: var(--display);
   font-weight: 700;
-  color: var(--lime);
+  color: var(--map-fill);
 }
 
 .prompt {
@@ -792,14 +1019,15 @@ svg {
 .toast--right {
   justify-content: flex-start;
   background: var(--lime);
+  color: var(--on-lime);
 }
 .toast--wrong {
   background: #ffe1db;
   color: #4a1309;
 }
 .toast .btn--primary {
-  background: #1a4333;
-  color: #eef6dc;
+  background: #1c2b26;
+  color: #f3f6ea;
 }
 @keyframes toast-in {
   from {
@@ -1036,7 +1264,7 @@ svg {
 }
 .day--today .day-dot {
   background: none;
-  box-shadow: inset 0 0 0 2px var(--lime);
+  box-shadow: inset 0 0 0 2px var(--pop);
 }
 .day--today .day-label,
 .day--done:last-child .day-label {
@@ -1131,14 +1359,11 @@ svg {
   border-radius: var(--r-md);
   background: var(--tile-2);
   color: var(--ink);
-  caret-color: var(--lime);
+  caret-color: var(--focus);
   font: inherit;
   font-family: var(--display);
   font-weight: 700;
   font-size: 1.25rem;
-}
-:root[data-theme='limette'] .field input {
-  caret-color: var(--ink);
 }
 .profiles button {
   display: flex;
@@ -1180,19 +1405,12 @@ svg {
   text-align: left;
   box-shadow: inset 0 0 0 1.5px var(--line);
 }
-.theme--wald {
-  background: #0d241c;
-  color: #edf5dc;
-}
-.theme--limette {
-  background: #eef1de;
-  color: #14362a;
+.theme {
+  background: var(--t-bg);
+  color: var(--t-ink);
 }
 .theme[aria-checked='true'] {
-  box-shadow: inset 0 0 0 3px var(--lime);
-}
-:root[data-theme='limette'] .theme[aria-checked='true'] {
-  box-shadow: inset 0 0 0 3px #14362a;
+  box-shadow: inset 0 0 0 3px var(--focus);
 }
 .theme-swatch {
   display: flex;
@@ -1203,20 +1421,7 @@ svg {
   width: 1.5rem;
   height: 1.5rem;
   border-radius: 50%;
-  background: #c8f53b;
-}
-.theme--wald .theme-swatch i:nth-child(2) {
-  background: #1e4536;
-}
-.theme--wald .theme-swatch i:nth-child(3) {
-  background: #edf5dc;
-}
-.theme--limette .theme-swatch i:nth-child(2) {
-  background: #1a4333;
-}
-.theme--limette .theme-swatch i:nth-child(3) {
-  background: #fbfcf3;
-  box-shadow: inset 0 0 0 1px rgb(20 54 42 / 0.15);
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.08);
 }
 .theme-name {
   font-family: var(--display);
@@ -1235,8 +1440,8 @@ svg {
   height: 1.5rem;
   padding: 0.1875rem;
   border-radius: 50%;
-  background: #c8f53b;
-  color: #10291d;
+  background: var(--t-ink);
+  color: var(--t-bg);
   stroke-width: 3;
 }
 

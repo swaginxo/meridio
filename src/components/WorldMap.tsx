@@ -12,6 +12,8 @@ interface Props {
   pool: Set<string>
   marks?: Record<string, Mark>
   pins?: boolean
+  /** Gebirgsschattierung über dem Land einblenden. */
+  relief?: boolean
   interactive?: boolean
   onPick?: (id: string) => void
   /** Platz in Pixeln, den Bedienelemente über und unter der Karte verdecken. */
@@ -35,6 +37,7 @@ function WorldMapInner({
   pool,
   marks,
   pins = true,
+  relief = false,
   interactive = true,
   onPick,
   inset = { top: 0, bottom: 0 },
@@ -254,6 +257,15 @@ function WorldMapInner({
         <path className="land is-out" d={WORLD.neutral} />
         {COUNTRIES.map((c) =>
           c.d ? <path key={c.id} className={cls(c.id)} d={c.d} data-id={pool.has(c.id) ? c.id : undefined} /> : null,
+        )}
+        {relief && (
+          <image
+            className="map-relief"
+            href={`${import.meta.env.BASE_URL}relief.webp`}
+            width={WORLD.w}
+            height={WORLD.h}
+            preserveAspectRatio="none"
+          />
         )}
         {/* Markierte Länder zuletzt, damit ihr Rand über den Nachbarn liegt. */}
         {marks &&
