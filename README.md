@@ -18,7 +18,8 @@ npm run dev
 - `src/lib/streak.ts` rechnet Streak und Streak Freezes, `src/lib/store.ts` hält Profile und speichert.
 - `src/components/WorldMap.tsx` ist die zoombare SVG-Karte, `src/screens/` enthält Start, Quiz, Streak und Profil.
 - `src/index.css` enthält alle Themes als CSS-Variablen auf `data-theme`, `src/lib/themes.ts` die Liste für die Auswahl im Profil.
-- `scripts/build-relief.mjs` rechnet die Gebirgsschattierung von Natural Earth (gemeinfrei) in die Kartenprojektion um und schreibt `public/relief.webp`. Die Themes Atlas und Alte Seekarte blenden sie ein.
+- `scripts/build-relief.mjs` rechnet die Gebirgsschattierung von Natural Earth (gemeinfrei) in die Kartenprojektion um: `public/relief.webp` als Übersicht und `public/relief/` als Kacheln in voller Auflösung, die beim Hineinzoomen nachgeladen werden. Die Themes Politisch, Atlas und Alte Seekarte blenden sie ein.
+- `src/components/GlobeMap.tsx` ist die 3D-Weltkarte (Canvas, orthografische Projektion), `MapView.tsx` wählt je nach Einstellung zwischen Globus und flacher Karte.
 
 ## Regeln
 

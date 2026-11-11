@@ -1,4 +1,5 @@
-import { memo, useCallback, useEffect, useLayoutEffect, useRef } from 'react'
+import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { RELIEF_BASE_SCALE, RELIEF_LAP, RELIEF_TILE, RELIEF_TILES } from '../data/relief-tiles'
 import { BY_ID, COUNTRIES, WORLD } from '../lib/geo'
 import type { Box, Level } from '../lib/types'
 
@@ -13,6 +14,8 @@ interface Props {
   marks?: Record<string, Mark>
   /** Gebirgsschattierung über dem Land einblenden. */
   relief?: boolean
+  /** Sehr kleine Länder zusätzlich als Punkt markieren. */
+  pins?: boolean
   interactive?: boolean
   onPick?: (id: string) => void
   /** Platz in Pixeln, den Bedienelemente über und unter der Karte verdecken. */
@@ -27,6 +30,8 @@ interface T {
 }
 
 const TINY = COUNTRIES.filter((c) => c.tiny && c.d)
+const PIN_R = 5.5
+const BASE = import.meta.env.BASE_URL
 
 function WorldMapInner({
   view,
@@ -34,6 +39,7 @@ function WorldMapInner({
   pool,
   marks,
   relief = false,
+  pins = false,
   interactive = true,
   onPick,
   inset = { top: 0, bottom: 0 },
@@ -49,10 +55,54 @@ function WorldMapInner({
   const pickRef = useRef(onPick)
   pickRef.current = onPick
 
+  const pinLayer = useRef<SVGGElement>(null)
+  const reliefRef = useRef(relief)
+  reliefRef.current = relief
+  /** Relief-Kacheln für den sichtbaren Ausschnitt, sobald die Übersicht zu grob wird. */
+  const [tiles, setTiles] = useState<string[]>([])
+  const [loaded, setLoaded] = useState<Set<string>>(() => new Set())
+  const tileTimer = useRef(0)
+
+  const pickTiles = useCallback(() => {
+    const { k, x, y } = t.current
+    const { w, h } = size.current
+    const dpr = Math.min(window.devicePixelRatio || 1, 3)
+    let next: string[] = []
+    if (reliefRef.current && w && k * dpr > RELIEF_BASE_SCALE * 1.2) {
+      const x0 = Math.max(0, Math.floor(-x / k / RELIEF_TILE))
+      const x1 = Math.min(WORLD.w / RELIEF_TILE - 1, Math.floor((w - x) / k / RELIEF_TILE))
+      const y0 = Math.max(0, Math.floor(-y / k / RELIEF_TILE))
+      const y1 = Math.min(WORLD.h / RELIEF_TILE - 1, Math.floor((h - y) / k / RELIEF_TILE))
+      for (let ty = y0; ty <= y1; ty++)
+        for (let tx = x0; tx <= x1; tx++) if (RELIEF_TILES.has(`${tx}_${ty}`)) next.push(`${tx}_${ty}`)
+      if (next.length > 16) next = []
+    }
+    setTiles((cur) => (cur.join() === next.join() ? cur : next))
+  }, [])
+
   const apply = useCallback(() => {
     const { k, x, y } = t.current
     layer.current?.setAttribute('transform', `translate(${x} ${y}) scale(${k})`)
-  }, [])
+    // Punkte behalten ihre Bildschirmgröße und verschwinden, sobald das Land groß genug ist.
+    const nodes = pinLayer.current?.children
+    if (nodes) {
+      for (let i = 0; i < nodes.length; i++) {
+        const g = nodes[i] as SVGGElement
+        const show = Number(g.dataset.span) * k < 20
+        g.style.display = show ? '' : 'none'
+        if (show) g.setAttribute('transform', `translate(${g.dataset.x} ${g.dataset.y}) scale(${1 / k})`)
+      }
+    }
+    if (reliefRef.current) {
+      clearTimeout(tileTimer.current)
+      tileTimer.current = window.setTimeout(pickTiles, 160)
+    }
+  }, [pickTiles])
+
+  useEffect(() => () => clearTimeout(tileTimer.current), [])
+  // Neu eingehängte Punkte ausrichten, Kacheln beim Wechsel des Themes anpassen.
+  useEffect(apply)
+  useEffect(pickTiles, [relief, pickTiles])
 
   const target = useCallback((box: Box): T => {
     const { w, h } = size.current
@@ -220,6 +270,9 @@ function WorldMapInner({
     }
   }, [interactive, apply, target])
 
+  // Die Übersicht weicht den Kacheln erst, wenn alle geladen sind, sonst blitzt die Karte kurz ohne Relief.
+  const tilesReady = tiles.length > 0 && tiles.every((k) => loaded.has(k))
+
   const cls = (id: string) => {
     const m = marks?.[id]
     if (m) return `land is-${m}`
@@ -244,11 +297,36 @@ function WorldMapInner({
         {relief && (
           <image
             className="map-relief"
-            href={`${import.meta.env.BASE_URL}relief.webp`}
+            href={`${BASE}relief.webp`}
             width={WORLD.w}
             height={WORLD.h}
             preserveAspectRatio="none"
+            style={tilesReady ? { display: 'none' } : undefined}
           />
+        )}
+        {relief && (
+          <g style={tilesReady ? undefined : { opacity: 0 }}>
+            {tiles.map((key) => {
+              const [tx, ty] = key.split('_').map(Number)
+              const x0 = Math.max(0, tx * RELIEF_TILE - RELIEF_LAP)
+              const y0 = Math.max(0, ty * RELIEF_TILE - RELIEF_LAP)
+              const x1 = Math.min(WORLD.w, (tx + 1) * RELIEF_TILE + RELIEF_LAP)
+              const y1 = Math.min(WORLD.h, (ty + 1) * RELIEF_TILE + RELIEF_LAP)
+              return (
+                <image
+                  key={key}
+                  className="map-relief"
+                  href={`${BASE}relief/${key}.webp`}
+                  x={x0}
+                  y={y0}
+                  width={x1 - x0}
+                  height={y1 - y0}
+                  preserveAspectRatio="none"
+                  onLoad={() => setLoaded((cur) => (cur.has(key) ? cur : new Set(cur).add(key)))}
+                />
+              )
+            })}
+          </g>
         )}
         {/* Markierte Länder zuletzt, damit ihr Rand über den Nachbarn liegt. */}
         {marks &&
@@ -259,6 +337,20 @@ function WorldMapInner({
         {/* Unsichtbare, breitere Tippfläche für sehr kleine Länder. */}
         {interactive &&
           TINY.filter((c) => pool.has(c.id)).map((c) => <path key={`h-${c.id}`} className="land-hit" d={c.d} data-id={c.id} />)}
+        <g ref={pinLayer}>
+          {pins &&
+            TINY.filter((c) => pool.has(c.id)).map((c) => (
+              <circle
+                key={c.id}
+                className={`pin ${marks?.[c.id] ? `is-${marks[c.id]}` : `lv${levels[c.id] ?? 0} c${c.col}`}`}
+                r={PIN_R}
+                data-id={interactive ? c.id : undefined}
+                data-x={c.c[0]}
+                data-y={c.c[1]}
+                data-span={Math.max(c.box[2] - c.box[0], c.box[3] - c.box[1])}
+              />
+            ))}
+        </g>
       </g>
     </svg>
   )

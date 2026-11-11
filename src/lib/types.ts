@@ -20,6 +20,10 @@ export interface Country {
   sub: string
   /** ISO-Codes der Nachbarländer. */
   nb: string[]
+  /** Numerischer ISO-Code, verknüpft mit den Globus-Geometrien. */
+  n: string
+  /** Länge und Breite des Landesmittelpunkts. */
+  ll: [number, number]
   c: [number, number]
   box: Box
   d: string
@@ -37,6 +41,10 @@ export interface Settings {
   klein: boolean
   abhaengig: boolean
   umstritten: boolean
+  /** Sehr kleine Länder als Punkt markieren. */
+  pins: boolean
+  /** Karte als drehbaren Globus anzeigen. */
+  globe: boolean
   len: 10 | 20
 }
 

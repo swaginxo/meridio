@@ -122,6 +122,16 @@ export function ProfileScreen() {
         ))}
       </div>
 
+      <section className="tile group">
+        <div className="row">
+          <div>
+            <p className="row-label">3D-Weltkarte</p>
+            <p className="row-text">Zeigt die Erde als drehbaren Globus im All. Gebirgsrelief gibt es nur auf der flachen Karte.</p>
+          </div>
+          <Switch on={settings.globe} onChange={(v) => set({ globe: v })} label="3D-Weltkarte" />
+        </div>
+      </section>
+
       <h2 className="group-title">Ortsfilter</h2>
       <section className="tile group">
         {FILTERS.map((f) => (
@@ -135,6 +145,13 @@ export function ProfileScreen() {
             <Switch on={settings[f.key]} onChange={(v) => set({ [f.key]: v })} label={f.label} />
           </div>
         ))}
+        <div className="row">
+          <div>
+            <p className="row-label">Punkte für kleine Länder</p>
+            <p className="row-text">Markiert Inselstaaten und Kleinstaaten, bis sie beim Zoomen groß genug sind</p>
+          </div>
+          <Switch on={settings.pins} onChange={(v) => set({ pins: v })} label="Punkte für kleine Länder" />
+        </div>
         <div className="row">
           <div>
             <p className="row-label">Rundenlänge</p>

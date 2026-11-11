@@ -1,7 +1,11 @@
-// Erzeugt public/relief.webp: Gebirgsschattierung in derselben Projektion wie die Karte.
+// Erzeugt die Gebirgsschattierung in derselben Projektion wie die Karte:
+//   public/relief.webp          Übersicht für die ganze Welt
+//   public/relief/<x>_<y>.webp  Kacheln in voller Quellauflösung, beim Hineinzoomen nachgeladen
+//   src/data/relief-tiles.ts    Liste der Kacheln, die Gebirge enthalten
 // Quelle: Natural Earth "Shaded Relief Basic" 1:50m (gemeinfrei),
 // https://naciscdn.org/naturalearth/50m/raster/SR_50M.zip
 // Aufruf: node scripts/build-relief.mjs /pfad/zu/SR_50M.tif
+import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import { geoNaturalEarth1 } from 'd3-geo'
 import sharp from 'sharp'
 
@@ -11,24 +15,29 @@ if (!src) throw new Error('Pfad zur SR_50M.tif fehlt')
 // Muss zu scripts/build-data.mjs passen.
 const W = 2000
 const H = 1000
-const SCALE = 1.5
 const projection = geoNaturalEarth1().fitExtent([[10, 10], [W - 10, H - 10]], { type: 'Sphere' })
 
-const SW = 5400
-const SH = 2700
-const { data: gray } = await sharp(src, { limitInputPixels: false })
-  .resize(SW, SH, { kernel: 'lanczos3' })
+/** Pixel je Karteneinheit: 5 entspricht etwa der Auflösung der Quelle. */
+const SCALE = 5
+/** Kachelgröße in Karteneinheiten und Überlappung gegen sichtbare Nähte. */
+const TILE = 200
+const LAP = 0.4
+const BASE_W = 3000
+
+const { data: gray, info } = await sharp(src, { limitInputPixels: false })
   .greyscale()
   .raw()
   .toBuffer({ resolveWithObject: true })
+const SW = info.width
+const SH = info.height
 
 // Der häufigste Grauwert ist die ebene Fläche (Meer und Flachland).
 const hist = new Uint32Array(256)
-for (let i = 0; i < gray.length; i++) hist[gray[i]]++
+for (let i = 0; i < gray.length; i += 7) hist[gray[i]]++
 const flat = hist.indexOf(Math.max(...hist))
 
-const OW = Math.round(W * SCALE)
-const OH = Math.round(H * SCALE)
+const OW = W * SCALE
+const OH = H * SCALE
 const out = Buffer.alloc(OW * OH * 4)
 
 const sample = (lon, lat) => {
@@ -69,8 +78,49 @@ for (let py = 0; py < OH; py++) {
   }
 }
 
-const file = new URL('../public/relief.webp', import.meta.url).pathname
-const info = await sharp(out, { raw: { width: OW, height: OH, channels: 4 } })
+const raw = { raw: { width: OW, height: OH, channels: 4 }, limitInputPixels: false }
+const pub = new URL('../public/', import.meta.url).pathname
+
+const base = await sharp(out, raw)
+  .resize(BASE_W, Math.round((BASE_W * H) / W), { kernel: 'lanczos3' })
   .webp({ quality: 62, alphaQuality: 70, effort: 6 })
-  .toFile(file)
-console.log(`relief.webp ${OW}x${OH}, ${(info.size / 1024).toFixed(0)} KB, Ebene bei Grauwert ${flat}`)
+  .toFile(pub + 'relief.webp')
+
+rmSync(pub + 'relief', { recursive: true, force: true })
+mkdirSync(pub + 'relief')
+const keys = []
+let bytes = 0
+const lap = Math.round(LAP * SCALE)
+for (let ty = 0; ty < H / TILE; ty++) {
+  for (let tx = 0; tx < W / TILE; tx++) {
+    const left = Math.max(0, tx * TILE * SCALE - lap)
+    const top = Math.max(0, ty * TILE * SCALE - lap)
+    const right = Math.min(OW, (tx + 1) * TILE * SCALE + lap)
+    const bottom = Math.min(OH, (ty + 1) * TILE * SCALE + lap)
+    const region = { left, top, width: right - left, height: bottom - top }
+    const tile = sharp(out, raw).extract(region)
+    // Kacheln ohne nennenswerte Schattierung (offenes Meer) auslassen.
+    const { channels } = await tile.clone().stats()
+    if (channels[3].mean < 0.6) continue
+    const file = await tile.webp({ quality: 58, alphaQuality: 68, effort: 5 }).toFile(`${pub}relief/${tx}_${ty}.webp`)
+    bytes += file.size
+    keys.push(`${tx}_${ty}`)
+  }
+}
+
+writeFileSync(
+  new URL('../src/data/relief-tiles.ts', import.meta.url),
+  `// Generiert von scripts/build-relief.mjs, nicht von Hand bearbeiten.
+/** Kachelgröße in Karteneinheiten und Überlappung der Bilder. */
+export const RELIEF_TILE = ${TILE}
+export const RELIEF_LAP = ${LAP}
+/** Pixel je Karteneinheit in Übersicht und Kacheln. */
+export const RELIEF_BASE_SCALE = ${BASE_W / W}
+export const RELIEF_TILE_SCALE = ${SCALE}
+/** Kacheln (Spalte_Zeile), die Gebirge enthalten. */
+export const RELIEF_TILES = new Set(${JSON.stringify(keys)})
+`,
+)
+console.log(
+  `Übersicht ${(base.size / 1024).toFixed(0)} KB, ${keys.length} Kacheln mit zusammen ${(bytes / 1048576).toFixed(1)} MB, Ebene bei Grauwert ${flat}`,
+)

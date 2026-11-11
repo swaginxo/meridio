@@ -1,9 +1,8 @@
 import { ArrowUpRight, Flame, Sparkles } from 'lucide-react'
 import { useMemo } from 'react'
-import { WorldMap } from '../components/WorldMap'
-import { VIEWS, levelsFor, poolFor, tally } from '../lib/geo'
+import { MapView } from '../components/MapView'
+import { levelsFor, poolFor, tally } from '../lib/geo'
 import { useProfile } from '../lib/store'
-import { themeOf } from '../lib/themes'
 import { MODES, REGIONS, type Mode, type Region } from '../lib/types'
 
 const HINT: Record<Mode, string> = {
@@ -60,13 +59,13 @@ export function Home({
         </button>
       </header>
 
-      <section className="hero">
+      <section className={`hero${settings.globe ? ' hero--globe' : ''}`}>
         <button className="hero-map" onClick={() => onStart('welt')} aria-label="Runde mit der ganzen Welt starten">
-          <WorldMap
-            view={VIEWS.welt}
+          <MapView
+            region="welt"
+            settings={settings}
             levels={levels}
             pool={worldIds}
-            relief={themeOf(settings.theme).relief}
             interactive={false}
             label="Dein Lernstand auf der Weltkarte"
           />

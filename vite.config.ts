@@ -26,7 +26,16 @@ export default defineConfig(({ command }) => ({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,webp,woff2}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,webp,woff2,json}'],
+        // Relief-Kacheln sind zusammen 7 MB: nicht vorab laden, sondern beim ersten Abruf merken.
+        globIgnores: ['relief/**'],
+        runtimeCaching: [
+          {
+            urlPattern: ({ url }) => url.pathname.includes('/relief/'),
+            handler: 'CacheFirst',
+            options: { cacheName: 'relief-kacheln', expiration: { maxEntries: 60 } },
+          },
+        ],
         maximumFileSizeToCacheInBytes: 4_000_000,
       },
     }),

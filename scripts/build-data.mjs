@@ -209,6 +209,8 @@ for (const c of countries) {
     col: color.get(c.cca2) ?? 0,
     sub: SUB_DE[c.subregion] ?? '',
     nb: c.borders.map((b) => cca3to2.get(b)).filter(Boolean),
+    n: c.ccn3 ?? '',
+    ll: [c.latlng[1], c.latlng[0]],
     c: pt.map(r1),
     box: shape ? shape.box.map(r1) : [pt[0] - 4, pt[1] - 4, pt[0] + 4, pt[1] + 4].map(r1),
     d: shape?.d ?? '',

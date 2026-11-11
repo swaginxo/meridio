@@ -1,13 +1,13 @@
 import { ArrowRight, Check, Flame, Lightbulb, RotateCcw, X } from 'lucide-react'
 import { useCallback, useMemo, useRef, useState } from 'react'
-import { WorldMap, type Mark } from '../components/WorldMap'
-import { BY_ID, VIEWS, accepts, boxAround, flagOf, levelsFor, poolFor, tally } from '../lib/geo'
+import { MapView } from '../components/MapView'
+import type { Mark } from '../components/WorldMap'
+import { BY_ID, accepts, flagOf, levelsFor, poolFor, tally } from '../lib/geo'
 import { drawRound } from '../lib/srs'
 import { actions, useProfile } from '../lib/store'
-import { themeOf } from '../lib/themes'
 import { factFor, tipFor } from '../lib/tips'
 import { Meter } from './Home'
-import { MODES, REGIONS, type Box, type Mode, type Region } from '../lib/types'
+import { MODES, REGIONS, type Mode, type Region } from '../lib/types'
 
 const POINTS = [0, 10, 6, 3]
 const MAX_TRIES = 3
@@ -37,7 +37,6 @@ export function Quiz({ mode, region, onExit }: { mode: Mode; region: Region; onE
   const [lastWrong, setLastWrong] = useState<string | null>(null)
   const [gained, setGained] = useState(0)
   const [results, setResults] = useState<Result[]>([])
-  const [view, setView] = useState<Box>(VIEWS[region])
   const [streakBefore] = useState(profile.streak.count)
   const repeated = useRef(new Set<string>())
   // Als Ref, weil der Übergang zur nächsten Frage zeitversetzt läuft.
@@ -55,7 +54,6 @@ export function Quiz({ mode, region, onExit }: { mode: Mode; region: Region; onE
     setMarks({})
     setLastWrong(null)
     setTries(0)
-    setView(VIEWS[region])
     if (idx + 1 >= queue.length) {
       const firstTry = resultsRef.current.filter((r) => r.tries === 1).length
       const bonus = 20 + (firstTry === total ? 30 : 0)
@@ -66,7 +64,7 @@ export function Quiz({ mode, region, onExit }: { mode: Mode; region: Region; onE
       setIdx(idx + 1)
       setPhase('ask')
     }
-  }, [idx, queue.length, region, total])
+  }, [idx, queue.length, total])
 
   const pick = useCallback(
     (id: string) => {
@@ -99,7 +97,6 @@ export function Quiz({ mode, region, onExit }: { mode: Mode; region: Region; onE
           }
         }
         setMarks({ [id]: 'wrong', [targetId]: 'reveal' })
-        setView(boxAround(target))
         setPhase('reveal')
       } else {
         setMarks((m) => ({ ...m, [id]: 'wrong' }))
@@ -121,7 +118,6 @@ export function Quiz({ mode, region, onExit }: { mode: Mode; region: Region; onE
     setGained(0)
     resultsRef.current = []
     setResults([])
-    setView(VIEWS[region])
     setPhase('ask')
   }
 
@@ -221,12 +217,13 @@ export function Quiz({ mode, region, onExit }: { mode: Mode; region: Region; onE
 
   return (
     <div className="quiz">
-      <WorldMap
-        view={view}
+      <MapView
+        region={region}
+        focus={phase === 'reveal' ? targetId : null}
+        settings={settings}
         levels={levels}
         pool={poolIds}
         marks={marks}
-        relief={themeOf(settings.theme).relief}
         onPick={pick}
         inset={inset}
         label={`Karte: ${regionLabel}`}
