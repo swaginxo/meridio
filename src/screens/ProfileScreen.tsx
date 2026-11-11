@@ -147,6 +147,13 @@ export function ProfileScreen() {
         ))}
         <div className="row">
           <div>
+            <p className="row-label">Lernstand im Spiel</p>
+            <p className="row-text">Färbt Länder während einer Runde nach Lernstufe. Aus: neutrale Karte ohne Hinweise</p>
+          </div>
+          <Switch on={settings.showLevels} onChange={(v) => set({ showLevels: v })} label="Lernstand im Spiel" />
+        </div>
+        <div className="row">
+          <div>
             <p className="row-label">Punkte für kleine Länder</p>
             <p className="row-text">Markiert Inselstaaten und Kleinstaaten, bis sie beim Zoomen groß genug sind</p>
           </div>

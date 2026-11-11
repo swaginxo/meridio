@@ -45,6 +45,8 @@ export interface Settings {
   pins: boolean
   /** Karte als drehbaren Globus anzeigen. */
   globe: boolean
+  /** Lernfarben während einer Runde auf der Karte zeigen. */
+  showLevels: boolean
   len: 10 | 20
 }
 

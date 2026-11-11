@@ -24,6 +24,7 @@ export function newProfile(name: string, settings?: Partial<Settings>): Profile 
       umstritten: false,
       pins: true,
       globe: false,
+      showLevels: true,
       len: 10,
       ...settings,
     },

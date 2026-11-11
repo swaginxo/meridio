@@ -1,4 +1,4 @@
-import { ArrowRight, Check, Flame, Lightbulb, RotateCcw, X } from 'lucide-react'
+import { ArrowRight, Check, ChevronLeft, Eye, EyeOff, Flame, Lightbulb, RotateCcw, X } from 'lucide-react'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { MapView } from '../components/MapView'
 import type { Mark } from '../components/WorldMap'
@@ -10,6 +10,7 @@ import { Meter } from './Home'
 import { MODES, REGIONS, type Mode, type Region } from '../lib/types'
 
 const POINTS = [0, 10, 6, 3]
+const NO_LEVELS = {}
 const MAX_TRIES = 3
 
 type Phase = 'ask' | 'right' | 'reveal' | 'done'
@@ -121,7 +122,7 @@ export function Quiz({ mode, region, onExit }: { mode: Mode; region: Region; onE
     setPhase('ask')
   }
 
-  const inset = useMemo(() => ({ top: 196, bottom: 150 }), [])
+  const inset = useMemo(() => ({ top: 162, bottom: 150 }), [])
   const regionLabel = REGIONS.find((r) => r.id === region)!.label
   const modeLabel = MODES.find((m) => m.id === mode)!.label
 
@@ -221,7 +222,7 @@ export function Quiz({ mode, region, onExit }: { mode: Mode; region: Region; onE
         region={region}
         focus={phase === 'reveal' ? targetId : null}
         settings={settings}
-        levels={levels}
+        levels={settings.showLevels ? levels : NO_LEVELS}
         pool={poolIds}
         marks={marks}
         onPick={pick}
@@ -231,36 +232,42 @@ export function Quiz({ mode, region, onExit }: { mode: Mode; region: Region; onE
 
       <div className="quiz-top">
         <div className="quiz-bar">
-          <button className="icon-btn" onClick={onExit} aria-label="Runde beenden">
-            <X aria-hidden />
+          <button className="icon-btn" onClick={onExit} aria-label="Zurück zur Übersicht">
+            <ChevronLeft aria-hidden />
           </button>
-          <div className="status">
-            <div className="status-row">
-              <span>
-                {modeLabel} · {regionLabel}
+          <div className="status" aria-label={`${modeLabel}, ${regionLabel}`}>
+            <div className="status-item">
+              <span className="status-num">
+                <small>Runde</small> {done}/{total}
               </span>
-              <strong>
-                {done}/{total}
-              </strong>
+              <div
+                className="progress"
+                role="progressbar"
+                aria-valuemin={0}
+                aria-valuemax={total}
+                aria-valuenow={done}
+                aria-label="Fortschritt in dieser Runde"
+              >
+                <span style={{ width: `${(done / total) * 100}%` }} />
+              </div>
             </div>
-            <div
-              className="progress"
-              role="progressbar"
-              aria-valuemin={0}
-              aria-valuemax={total}
-              aria-valuenow={done}
-              aria-label="Fortschritt in dieser Runde"
-            >
-              <span style={{ width: `${(done / total) * 100}%` }} />
-            </div>
-            <div className="status-row">
-              <span>Lernstand</span>
-              <strong>
-                {counts[2] + counts[3]}/{pool.length}
-              </strong>
-            </div>
-            <Meter counts={counts} />
+            {settings.showLevels && (
+              <div className="status-item">
+                <span className="status-num">
+                  <small>Gelernt</small> {counts[2] + counts[3]}/{pool.length}
+                </span>
+                <Meter counts={counts} />
+              </div>
+            )}
           </div>
+          <button
+            className="icon-btn"
+            onClick={() => actions.setSettings({ showLevels: !settings.showLevels })}
+            aria-pressed={settings.showLevels}
+            aria-label="Lernstand auf der Karte anzeigen"
+          >
+            {settings.showLevels ? <Eye aria-hidden /> : <EyeOff aria-hidden />}
+          </button>
         </div>
 
         <div className="prompt" key={`${round}-${idx}`}>
